@@ -464,10 +464,7 @@ static void config_load(void)
 	config_load_system(&cfg_system);
 	config_load_output(&cfg_output);
 
-	if (cfg_system.default_on)
-		cfg_system.output = 1;
-	else
-		cfg_system.output = 0;
+	cfg_system.output = !!cfg_system.default_on;
 
 #if DEBUG
 	state.pc3 = 1;
