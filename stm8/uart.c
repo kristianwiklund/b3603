@@ -142,7 +142,7 @@ void uart_write_fixed_point(uint32_t val)
 	uart_write_uint(tmp);
 }
 
-static void uart_write_from_buf(void)
+inline void uart_write_from_buf(void)
 {
 	USART1_DR = uart_write_buf[uart_write_start];
 	uart_write_start++;
@@ -157,7 +157,7 @@ inline uint8_t uart_read_ch(void)
 	return USART1_DR;
 }
 
-static void uart_read_to_buf(void)
+inline void uart_read_to_buf(void)
 {
 	// Don't read if we are writing
 	uint8_t ch = uart_read_ch();

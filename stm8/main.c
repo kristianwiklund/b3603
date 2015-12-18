@@ -228,7 +228,7 @@ static void cmd_autocommit(uint8_t *s)
 	}
 }
 
-static uint32_t _parse_uint(uint8_t *s)
+inline uint32_t _parse_uint(uint8_t *s)
 {
 	uint32_t val = 0;
 
@@ -504,7 +504,7 @@ inline const struct command *lookup_command(uint8_t *name)
 	return NULL;
 }
 
-static void process_input()
+inline void process_input()
 {
 	uint8_t argc, *argv[MAX_ARGC + 1];
 	const struct command *cmd = NULL;
@@ -566,7 +566,7 @@ inline void pinout_init()
 	PD_CR2 = (1<<4);
 }
 
-static void config_load(void)
+inline void config_load(void)
 {
 	config_load_system(&cfg_system);
 	config_load_output(&cfg_output);
@@ -578,7 +578,7 @@ static void config_load(void)
 #endif
 }
 
-static void read_state(void)
+inline void read_state(void)
 {
 	uint8_t tmp;
 
@@ -640,7 +640,7 @@ static void read_state(void)
 	}
 }
 
-static void ensure_afr0_set(void)
+inline void ensure_afr0_set(void)
 {
 	if ((OPT2 & 1) == 0) {
 		uart_flush_writes();
