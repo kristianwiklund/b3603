@@ -554,8 +554,6 @@ static void ensure_afr0_set(void)
 
 int main()
 {
-	unsigned long i = 0;
-
 	pinout_init();
 	clk_init();
 	uart_init();
