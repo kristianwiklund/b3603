@@ -68,17 +68,10 @@ static void write_onoff(const char *prefix, uint8_t on)
 	write_str(prefix, on ? "ON" : "OFF");
 }
 
-static void write_millivolt(const char *prefix, uint16_t mv)
+static void write_millis(const char *prefix, uint16_t val)
 {
 	uart_write_str(prefix);
-	uart_write_millivolt(mv);
-	uart_write_str("\r\n");
-}
-
-static void write_milliamp(const char *prefix, uint16_t ma)
-{
-	uart_write_str(prefix);
-	uart_write_milliamp(ma);
+	uart_write_millis(val);
 	uart_write_str("\r\n");
 }
 
@@ -161,7 +154,7 @@ static void set_voltage(uint8_t *s)
 		return;
 	}
 
-	write_millivolt("VOLTAGE: SET ", val);
+	write_millis("VOLTAGE: SET ", val);
 	cfg_output.vset = val;
 
 	autocommit();
@@ -186,7 +179,7 @@ static void set_current(uint8_t *s)
 		return;
 	}
 
-	write_milliamp("CURRENT: SET ", val);
+	write_millis("CURRENT: SET ", val);
 	cfg_output.cset = val;
 
 	autocommit();
@@ -309,35 +302,35 @@ static void process_input()
 		uart_write_str("\r\n");
 	} else if (strcmp(uart_read_buf, "LIMITS") == 0) {
 		uart_write_str("LIMITS:\r\n");
-		write_millivolt("VMIN: ", CAP_VMIN);
-		write_millivolt("VMAX: ", CAP_VMAX);
-		write_millivolt("VSTEP: ", CAP_VSTEP);
-		write_milliamp("CMIN: ", CAP_CMIN);
-		write_milliamp("CMAX: ", CAP_CMAX);
-		write_milliamp("CSTEP: ", CAP_CSTEP);
+		write_millis("VMIN: ", CAP_VMIN);
+		write_millis("VMAX: ", CAP_VMAX);
+		write_millis("VSTEP: ", CAP_VSTEP);
+		write_millis("CMIN: ", CAP_CMIN);
+		write_millis("CMAX: ", CAP_CMAX);
+		write_millis("CSTEP: ", CAP_CSTEP);
 	} else if (strcmp(uart_read_buf, "CONFIG") == 0) {
 		uart_write_str("CONFIG:\r\n");
 		write_onoff("OUTPUT: ", cfg_system.output);
-		write_millivolt("VSET: ", cfg_output.vset);
-		write_milliamp("CSET: ", cfg_output.cset);
-		write_millivolt("VSHUTDOWN: ", cfg_output.vshutdown);
-		write_millivolt("CSHUTDOWN: ", cfg_output.cshutdown);
+		write_millis("VSET: ", cfg_output.vset);
+		write_millis("CSET: ", cfg_output.cset);
+		write_millis("VSHUTDOWN: ", cfg_output.vshutdown);
+		write_millis("CSHUTDOWN: ", cfg_output.cshutdown);
 	} else if (strcmp(uart_read_buf, "STATUS") == 0) {
 		uart_write_str("STATUS:\r\n");
 		write_onoff("OUTPUT: ", cfg_system.output);
-		write_millivolt("VIN: ", state.vin);
-		write_millivolt("VOUT: ", state.vout);
-		write_milliamp("COUT: ", state.cout);
+		write_millis("VIN: ", state.vin);
+		write_millis("VOUT: ", state.vout);
+		write_millis("COUT: ", state.cout);
 		write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
 	} else if (strcmp(uart_read_buf, "RSTATUS") == 0) {
 		uart_write_str("RSTATUS:\r\n");
 		write_onoff("OUTPUT: ", cfg_system.output);
 		write_int("VIN ADC: ", state.vin_raw);
-		write_millivolt("VIN: ", state.vin);
+		write_millis("VIN: ", state.vin);
 		write_int("VOUT ADC: ", state.vout_raw);
-		write_millivolt("VOUT: ", state.vout);
+		write_millis("VOUT: ", state.vout);
 		write_int("COUT ADC: ", state.cout_raw);
-		write_milliamp("COUT: ", state.cout);
+		write_millis("COUT: ", state.cout);
 		write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
 	} else if (strcmp(uart_read_buf, "COMMIT") == 0) {
 		commit_output();

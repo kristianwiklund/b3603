@@ -131,21 +131,7 @@ void uart_write_int32(uint32_t val)
 	}
 }
 
-void uart_write_milliamp(uint16_t val)
-{
-	int8_t i;
-	uint8_t highest_nonzero;
-
-	highest_nonzero = int_to_digits(val);
-
-	for (i = highest_nonzero-1; i >= 0; i--) {
-		if (i == 2)
-			uart_write_ch('.');
-		uart_write_ch(digits_buf[i]);
-	}
-}
-
-void uart_write_millivolt(uint16_t val)
+void uart_write_millis(uint16_t val)
 {
 	int8_t i;
 	uint8_t highest_nonzero;
