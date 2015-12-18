@@ -141,26 +141,15 @@ static void cmd_sname(uint8_t *name)
 
 static void cmd_output(uint8_t *s)
 {
-	if (s[1] != 0) {
-		uart_write_str("OUTPUT takes either 0 for OFF or 1 for ON, received: \"");
-		uart_write_str(s);
-		uart_write_str("\"\r\n");
-		return;
-	}
-
-	if (s[0] == '0') {
-		cfg_system.output = 0;
-		uart_write_str("OUTPUT: OFF\r\n");
-	} else if (s[0] == '1') {
-		cfg_system.output = 1;
-		uart_write_str("OUTPUT: ON\r\n");
+	if ((s[0] == '0' || s[0] == '1') && s[1] == 0) {
+		cfg_system.output = s[0] - '0';
+		write_onoff("OUTPUT: ", cfg_system.output);
+		autocommit();
 	} else {
 		uart_write_str("OUTPUT takes either 0 for OFF or 1 for ON, received: \"");
 		uart_write_str(s);
 		uart_write_str("\"\r\n");
 	}
-
-	autocommit();
 }
 
 static void cmd_voltage(uint8_t *s)
