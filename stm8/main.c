@@ -41,9 +41,9 @@
 #define CAP_CMAX 3000 // 3 A
 #define CAP_CSTEP 1 // 1 mA
 
-cfg_system_t cfg_system;
-cfg_output_t cfg_output;
-state_t state;
+static cfg_system_t cfg_system;
+static cfg_output_t cfg_output;
+static state_t state;
 
 inline void iwatchdog_init(void)
 {
@@ -56,12 +56,12 @@ inline void iwatchdog_tick(void)
 	IWDG_KR = 0xAA; // Reset the counter
 }
 
-void commit_output()
+static void commit_output()
 {
 	output_commit(&cfg_output, &cfg_system, state.constant_current);
 }
 
-void set_name(uint8_t *name)
+static void set_name(uint8_t *name)
 {
 	uint8_t idx;
 
@@ -78,7 +78,7 @@ void set_name(uint8_t *name)
 	uart_write_str("\r\n");
 }
 
-void autocommit(void)
+static void autocommit(void)
 {
 	if (cfg_system.autocommit) {
 		commit_output();
@@ -87,7 +87,7 @@ void autocommit(void)
 	}
 }
 
-void set_output(uint8_t *s)
+static void set_output(uint8_t *s)
 {
 	if (s[1] != 0) {
 		uart_write_str("OUTPUT takes either 0 for OFF or 1 for ON, received: \"");
@@ -111,7 +111,7 @@ void set_output(uint8_t *s)
 	autocommit();
 }
 
-void set_voltage(uint8_t *s)
+static void set_voltage(uint8_t *s)
 {
 	fixed_t val;
 
@@ -136,7 +136,7 @@ void set_voltage(uint8_t *s)
 	autocommit();
 }
 
-void set_current(uint8_t *s)
+static void set_current(uint8_t *s)
 {
 	fixed_t val;
 
@@ -161,7 +161,7 @@ void set_current(uint8_t *s)
 	autocommit();
 }
 
-void set_autocommit(uint8_t *s)
+static void set_autocommit(uint8_t *s)
 {
 	if (strcmp(s, "1") == 0 || strcmp(s, "YES") == 0) {
 		cfg_system.autocommit = 1;
@@ -176,40 +176,40 @@ void set_autocommit(uint8_t *s)
 	}
 }
 
-void write_str(const char *prefix, const char *val)
+static void write_str(const char *prefix, const char *val)
 {
 	uart_write_str(prefix);
 	uart_write_str(val);
 	uart_write_str("\r\n");
 }
 
-void write_onoff(const char *prefix, uint8_t on)
+static void write_onoff(const char *prefix, uint8_t on)
 {
 	write_str(prefix, on ? "ON" : "OFF");
 }
 
-void write_millivolt(const char *prefix, uint16_t mv)
+static void write_millivolt(const char *prefix, uint16_t mv)
 {
 	uart_write_str(prefix);
 	uart_write_millivolt(mv);
 	uart_write_str("\r\n");
 }
 
-void write_milliamp(const char *prefix, uint16_t ma)
+static void write_milliamp(const char *prefix, uint16_t ma)
 {
 	uart_write_str(prefix);
 	uart_write_milliamp(ma);
 	uart_write_str("\r\n");
 }
 
-void write_int(const char *prefix, uint16_t val)
+static void write_int(const char *prefix, uint16_t val)
 {
 	uart_write_str(prefix);
 	uart_write_int(val);
 	uart_write_str("\r\n");
 }
 
-uint32_t _parse_uint(uint8_t *s)
+static uint32_t _parse_uint(uint8_t *s)
 {
 	uint32_t val = 0;
 
@@ -225,7 +225,7 @@ uint32_t _parse_uint(uint8_t *s)
 	return val;
 }
 
-void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
+static void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 {
 	uint32_t val = _parse_uint(s);
 	if (val == 0xFFFFFFFF) {
@@ -241,7 +241,7 @@ void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 	uart_write_str("\r\n");
 }
 
-void process_input()
+static void process_input()
 {
 	// Eliminate the CR/LF character
 	uart_read_buf[uart_read_len-1] = 0;
@@ -459,7 +459,7 @@ inline void pinout_init()
 	PD_CR2 = (1<<4);
 }
 
-void config_load(void)
+static void config_load(void)
 {
 	config_load_system(&cfg_system);
 	config_load_output(&cfg_output);
@@ -474,7 +474,7 @@ void config_load(void)
 #endif
 }
 
-void read_state(void)
+static void read_state(void)
 {
 	uint8_t tmp;
 
@@ -536,7 +536,7 @@ void read_state(void)
 	}
 }
 
-void ensure_afr0_set(void)
+static void ensure_afr0_set(void)
 {
 	if ((OPT2 & 1) == 0) {
 		uart_flush_writes();

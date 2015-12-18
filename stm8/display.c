@@ -21,11 +21,11 @@
 
 #include <string.h>
 
-uint8_t display_idx;
-uint8_t display_data[4];
-uint8_t pending_display_data[4];
-uint8_t pending_update;
-uint16_t timer;
+static uint8_t display_idx;
+static uint8_t display_data[4];
+static uint8_t pending_display_data[4];
+static uint8_t pending_update;
+static uint16_t timer;
 
 static const uint8_t display_number[10] = {
 	0xFC, // '0'
@@ -77,7 +77,7 @@ void display_refresh(void)
 		display_idx = 0;
 }
 
-uint8_t display_char(uint8_t ch, uint8_t dot)
+static uint8_t display_char(uint8_t ch, uint8_t dot)
 {
 	if (dot)
 		dot = 1;

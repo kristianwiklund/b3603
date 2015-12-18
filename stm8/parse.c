@@ -19,7 +19,7 @@
 #include "parse.h"
 #include "uart.h"
 
-uint16_t parse_num(uint8_t *s, uint8_t **stop, uint8_t *digits_seen)
+static uint16_t parse_num(uint8_t *s, uint8_t **stop, uint8_t *digits_seen)
 {
 	uint8_t digit;
 	uint16_t num = 0;

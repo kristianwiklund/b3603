@@ -20,9 +20,9 @@
 #include "fixedpoint.h"
 #include "stm8s.h"
 
-uint8_t uart_write_buf[255];
-uint8_t uart_write_start;
-uint8_t uart_write_len;
+static uint8_t uart_write_buf[255];
+static uint8_t uart_write_start;
+static uint8_t uart_write_len;
 
 uint8_t uart_read_buf[64];
 uint8_t uart_read_len;
@@ -74,7 +74,8 @@ void uart_write_str(const char *str)
 	}
 }
 
-uint8_t digits_buf[12];
+static uint8_t digits_buf[12];
+
 static uint8_t int_to_digits(uint16_t val)
 {
 	uint8_t i;
@@ -190,7 +191,7 @@ void uart_write_fixed_point(uint32_t val)
 	uart_write_int32(tmp);
 }
 
-void uart_write_from_buf(void)
+static void uart_write_from_buf(void)
 {
 	USART1_DR = uart_write_buf[uart_write_start];
 	uart_write_start++;
@@ -205,7 +206,7 @@ inline uint8_t uart_read_ch(void)
 	return USART1_DR;
 }
 
-void uart_read_to_buf(void)
+static void uart_read_to_buf(void)
 {
 	// Don't read if we are writing
 	uint8_t ch = uart_read_ch();

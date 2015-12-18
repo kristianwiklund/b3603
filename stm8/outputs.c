@@ -74,7 +74,7 @@ inline void cvcc_led_off(void)
 	PA_DDR &= ~(1<<3);
 }
 
-uint16_t pwm_from_set(fixed_t set, calibrate_t *cal)
+static uint16_t pwm_from_set(fixed_t set, calibrate_t *cal)
 {
 	uint32_t tmp;
 

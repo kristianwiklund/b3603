@@ -30,7 +30,7 @@
 
 #define DEFAULT_NAME_STR "Unnamed"
 
-cfg_system_t default_cfg_system = {
+static cfg_system_t default_cfg_system = {
 	.version = SYSTEM_CFG_VERSION,
 	.name = "Unnamed",
 	.default_on = 0,
@@ -44,7 +44,7 @@ cfg_system_t default_cfg_system = {
 	.cout_pwm = { .a = FLOAT_TO_FIXED(8*0.8/3.3), .b = FLOAT_TO_FIXED(160) },
 };
 
-cfg_output_t default_cfg_output = {
+static cfg_output_t default_cfg_output = {
 	OUTPUT_CFG_VERSION,
 	5000, // 5V
 	500, // 0.5A
