@@ -38,11 +38,6 @@ void uart_init()
 	USART1_BRR1 = 0x1A; // 38400 baud, order important between BRRs, BRR1 must be last
 
 	USART1_CR2 = USART_CR2_TEN | USART_CR2_REN; // Allow TX & RX
-
-	uart_write_len = 0;
-	uart_write_start = 0;
-	uart_read_len = 0;
-	read_newline = 0;
 }
 
 inline uint8_t uart_write_ready(void)
