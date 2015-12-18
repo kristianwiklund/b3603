@@ -82,6 +82,26 @@ static void write_uint(const char *prefix, uint32_t val)
 	uart_write_str("\r\n");
 }
 
+static void write_calibration_fixed_point(const char* prefix, calibrate_t *cal)
+{
+	uart_write_str("CALIBRATE ");
+	uart_write_str(prefix);
+	uart_write_fixed_point(cal->a);
+	uart_write_ch('/');
+	uart_write_fixed_point(cal->b);
+	uart_write_str("\r\n");
+}
+
+static void write_calibration_uint(const char* prefix, calibrate_t *cal)
+{
+	uart_write_str("CALIBRATE ");
+	uart_write_str(prefix);
+	uart_write_uint(cal->a);
+	uart_write_ch('/');
+	uart_write_uint(cal->b);
+	uart_write_str("\r\n");
+}
+
 static void commit_output()
 {
 	output_commit(&cfg_output, &cfg_system, state.constant_current);
@@ -249,57 +269,17 @@ static void process_input()
 		write_onoff("ONSTARTUP: ", cfg_system.default_on);
 		write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
 	} else if (strcmp(uart_read_buf, "CALIBRATION") == 0) {
-		uart_write_str("CALIBRATE VIN ADC: ");
-		uart_write_fixed_point(cfg_system.vin_adc.a);
-		uart_write_ch('/');
-		uart_write_fixed_point(cfg_system.vin_adc.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE VOUT ADC: ");
-		uart_write_fixed_point(cfg_system.vout_adc.a);
-		uart_write_ch('/');
-		uart_write_fixed_point(cfg_system.vout_adc.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE COUT ADC: ");
-		uart_write_fixed_point(cfg_system.cout_adc.a);
-		uart_write_ch('/');
-		uart_write_fixed_point(cfg_system.cout_adc.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE VOUT PWM: ");
-		uart_write_fixed_point(cfg_system.vout_pwm.a);
-		uart_write_ch('/');
-		uart_write_fixed_point(cfg_system.vout_pwm.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE COUT PWM: ");
-		uart_write_fixed_point(cfg_system.cout_pwm.a);
-		uart_write_ch('/');
-		uart_write_fixed_point(cfg_system.cout_pwm.b);
-		uart_write_str("\r\n");
+		write_calibration_fixed_point("VIN ADC: ", &cfg_system.vin_adc);
+		write_calibration_fixed_point("VOUT ADC: ", &cfg_system.vout_adc);
+		write_calibration_fixed_point("COUT ADC: ", &cfg_system.cout_adc);
+		write_calibration_fixed_point("VOUT PWM: ", &cfg_system.vout_pwm);
+		write_calibration_fixed_point("COUT PWM: ", &cfg_system.cout_pwm);
 	} else if (strcmp(uart_read_buf, "RCALIBRATION") == 0) {
-		uart_write_str("CALIBRATE VIN ADC: ");
-		uart_write_uint(cfg_system.vin_adc.a);
-		uart_write_ch('/');
-		uart_write_uint(cfg_system.vin_adc.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE VOUT ADC: ");
-		uart_write_uint(cfg_system.vout_adc.a);
-		uart_write_ch('/');
-		uart_write_uint(cfg_system.vout_adc.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE COUT ADC: ");
-		uart_write_uint(cfg_system.cout_adc.a);
-		uart_write_ch('/');
-		uart_write_uint(cfg_system.cout_adc.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE VOUT PWM: ");
-		uart_write_uint(cfg_system.vout_pwm.a);
-		uart_write_ch('/');
-		uart_write_uint(cfg_system.vout_pwm.b);
-		uart_write_str("\r\n");
-		uart_write_str("CALIBRATE COUT PWM: ");
-		uart_write_uint(cfg_system.cout_pwm.a);
-		uart_write_ch('/');
-		uart_write_uint(cfg_system.cout_pwm.b);
-		uart_write_str("\r\n");
+		write_calibration_uint("VIN ADC: ", &cfg_system.vin_adc);
+		write_calibration_uint("VOUT ADC: ", &cfg_system.vout_adc);
+		write_calibration_uint("COUT ADC: ", &cfg_system.cout_adc);
+		write_calibration_uint("VOUT PWM: ", &cfg_system.vout_pwm);
+		write_calibration_uint("COUT PWM: ", &cfg_system.cout_pwm);
 	} else if (strcmp(uart_read_buf, "LIMITS") == 0) {
 		uart_write_str("LIMITS:\r\n");
 		write_millis("VMIN: ", CAP_VMIN);
