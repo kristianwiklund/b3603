@@ -106,9 +106,7 @@ static void set_name(uint8_t *name)
 	memcpy(cfg_system.name, name, sizeof(cfg_system.name));
 	cfg_system.name[sizeof(cfg_system.name)-1] = 0;
 
-	uart_write_str("SNAME: ");
-	uart_write_str(cfg_system.name);
-	uart_write_str("\r\n");
+	write_str("SNAME: ", cfg_system.name);
 }
 
 static void autocommit(void)
@@ -163,9 +161,7 @@ static void set_voltage(uint8_t *s)
 		return;
 	}
 
-	uart_write_str("VOLTAGE: SET ");
-	uart_write_millivolt(val);
-	uart_write_str("\r\n");
+	write_millivolt("VOLTAGE: SET ", val);
 	cfg_output.vset = val;
 
 	autocommit();
@@ -190,9 +186,7 @@ static void set_current(uint8_t *s)
 		return;
 	}
 
-	uart_write_str("CURRENT: SET ");
-	uart_write_milliamp(val);
-	uart_write_str("\r\n");
+	write_milliamp("CURRENT: SET ", val);
 	cfg_output.cset = val;
 
 	autocommit();
