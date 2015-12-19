@@ -71,37 +71,7 @@ void uart_write_str(const char *str)
 
 static uint8_t digits_buf[12];
 
-static uint8_t int_to_digits(uint16_t val)
-{
-	uint8_t i;
-	uint8_t num_digits = 0;
-
-	digits_buf[0] = '0';
-
-	for (i = 0; i < 6 && val != 0; i++) {
-		uint8_t digit = val % 10;
-		digits_buf[i] = '0' + digit;
-		val /= 10;
-		if (digit) // We only really want to know about non-zero digits
-			num_digits = i;
-	}
-
-	return num_digits + 1;
-}
-
-void uart_write_int(uint16_t val)
-{
-	int8_t i;
-	uint8_t highest_nonzero;
-
-	highest_nonzero = int_to_digits(val);
-
-	for (i = highest_nonzero-1; i >= 0; i--) {
-		uart_write_ch(digits_buf[i]);
-	}
-}
-
-static uint8_t int32_to_digits(uint32_t val)
+static uint8_t uint_to_digits(uint32_t val)
 {
 	uint8_t i;
 	uint8_t num_digits = 0;
@@ -119,12 +89,12 @@ static uint8_t int32_to_digits(uint32_t val)
 	return num_digits + 1;
 }
 
-void uart_write_int32(uint32_t val)
+void uart_write_uint(uint32_t val)
 {
 	int8_t i;
 	uint8_t highest_nonzero;
 
-	highest_nonzero = int32_to_digits(val);
+	highest_nonzero = uint_to_digits(val);
 
 	for (i = highest_nonzero-1; i >= 0; i--) {
 		uart_write_ch(digits_buf[i]);
@@ -136,7 +106,7 @@ void uart_write_millis(uint16_t val)
 	int8_t i;
 	uint8_t highest_nonzero;
 
-	highest_nonzero = int_to_digits(val);
+	highest_nonzero = uint_to_digits(val);
 
 	for (i = highest_nonzero-1; i >= 0; i--) {
 		if (i == 2)
@@ -151,7 +121,7 @@ void uart_write_fixed_point(uint32_t val)
 
 	// Print the integer part
 	tmp = val >> FIXED_SHIFT;
-	uart_write_int(tmp);
+	uart_write_uint(tmp);
 	uart_write_ch('.');
 
 	// Remove the integer part
@@ -169,7 +139,7 @@ void uart_write_fixed_point(uint32_t val)
 		uart_write_ch('0');
 
 	// Write the remaining fractional part
-	uart_write_int32(tmp);
+	uart_write_uint(tmp);
 }
 
 static void uart_write_from_buf(void)

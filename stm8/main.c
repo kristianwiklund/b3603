@@ -75,10 +75,10 @@ static void write_millis(const char *prefix, uint16_t val)
 	uart_write_str("\r\n");
 }
 
-static void write_int(const char *prefix, uint16_t val)
+static void write_uint(const char *prefix, uint32_t val)
 {
 	uart_write_str(prefix);
-	uart_write_int(val);
+	uart_write_uint(val);
 	uart_write_str("\r\n");
 }
 
@@ -276,29 +276,29 @@ static void process_input()
 		uart_write_str("\r\n");
 	} else if (strcmp(uart_read_buf, "RCALIBRATION") == 0) {
 		uart_write_str("CALIBRATE VIN ADC: ");
-		uart_write_int32(cfg_system.vin_adc.a);
+		uart_write_uint(cfg_system.vin_adc.a);
 		uart_write_ch('/');
-		uart_write_int32(cfg_system.vin_adc.b);
+		uart_write_uint(cfg_system.vin_adc.b);
 		uart_write_str("\r\n");
 		uart_write_str("CALIBRATE VOUT ADC: ");
-		uart_write_int32(cfg_system.vout_adc.a);
+		uart_write_uint(cfg_system.vout_adc.a);
 		uart_write_ch('/');
-		uart_write_int32(cfg_system.vout_adc.b);
+		uart_write_uint(cfg_system.vout_adc.b);
 		uart_write_str("\r\n");
 		uart_write_str("CALIBRATE COUT ADC: ");
-		uart_write_int32(cfg_system.cout_adc.a);
+		uart_write_uint(cfg_system.cout_adc.a);
 		uart_write_ch('/');
-		uart_write_int32(cfg_system.cout_adc.b);
+		uart_write_uint(cfg_system.cout_adc.b);
 		uart_write_str("\r\n");
 		uart_write_str("CALIBRATE VOUT PWM: ");
-		uart_write_int32(cfg_system.vout_pwm.a);
+		uart_write_uint(cfg_system.vout_pwm.a);
 		uart_write_ch('/');
-		uart_write_int32(cfg_system.vout_pwm.b);
+		uart_write_uint(cfg_system.vout_pwm.b);
 		uart_write_str("\r\n");
 		uart_write_str("CALIBRATE COUT PWM: ");
-		uart_write_int32(cfg_system.cout_pwm.a);
+		uart_write_uint(cfg_system.cout_pwm.a);
 		uart_write_ch('/');
-		uart_write_int32(cfg_system.cout_pwm.b);
+		uart_write_uint(cfg_system.cout_pwm.b);
 		uart_write_str("\r\n");
 	} else if (strcmp(uart_read_buf, "LIMITS") == 0) {
 		uart_write_str("LIMITS:\r\n");
@@ -325,11 +325,11 @@ static void process_input()
 	} else if (strcmp(uart_read_buf, "RSTATUS") == 0) {
 		uart_write_str("RSTATUS:\r\n");
 		write_onoff("OUTPUT: ", cfg_system.output);
-		write_int("VIN ADC: ", state.vin_raw);
+		write_uint("VIN ADC: ", state.vin_raw);
 		write_millis("VIN: ", state.vin);
-		write_int("VOUT ADC: ", state.vout_raw);
+		write_uint("VOUT ADC: ", state.vout_raw);
 		write_millis("VOUT: ", state.vout);
-		write_int("COUT ADC: ", state.cout_raw);
+		write_uint("COUT ADC: ", state.cout_raw);
 		write_millis("COUT: ", state.cout);
 		write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
 	} else if (strcmp(uart_read_buf, "COMMIT") == 0) {

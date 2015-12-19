@@ -20,7 +20,7 @@
 
 void uart_write_ch(const char ch) { (void)ch; }
 void uart_write_str(const char *s) { (void)s; }
-void uart_write_int(uint16_t v) { (void)v; }
+void uart_write_uint(uint32_t v) { (void)v; }
 
 #include "fixedpoint.c"
 #include "outputs.c"
