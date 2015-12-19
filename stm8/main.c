@@ -258,12 +258,11 @@ static void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 		uart_write_str("FAILED TO PARSE ");
 		uart_write_str(s);
 		uart_write_str(" FOR ");
-		uart_write_str(name);
 	} else {
 		*pval = val;
 		uart_write_str("CALIBRATION SET ");
-		uart_write_str(name);
 	}
+	uart_write_str(name);
 	uart_write_str("\r\n");
 }
 
