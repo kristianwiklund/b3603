@@ -204,16 +204,13 @@ static void cmd_current(uint8_t *s)
 
 static void cmd_autocommit(uint8_t *s)
 {
-	if (strcmp(s, "1") == 0 || strcmp(s, "YES") == 0) {
-		cfg_system.autocommit = 1;
-		uart_write_str("AUTOCOMMIT: YES\r\n");
-	} else if (strcmp(s, "0") == 0 || strcmp(s, "NO") == 0) {
-		cfg_system.autocommit = 0;
-		uart_write_str("AUTOCOMMIT: NO\r\n");
+	if ((s[0] == '0' || s[0] == '1') && s[1] == 0) {
+		cfg_system.autocommit = s[0] - '0';
+		write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
 	} else {
-		uart_write_str("UNKNOWN AUTOCOMMIT ARG: ");
+		uart_write_str("AUTOCOMMIT takes either 0 for OFF or 1 for ON, received: \"");
 		uart_write_str(s);
-		uart_write_str("\r\n");
+		uart_write_str("\"\r\n");
 	}
 }
 

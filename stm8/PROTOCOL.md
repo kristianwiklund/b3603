@@ -48,8 +48,8 @@ If auto commit is on, this command is not going to change anything.
 
 ### Auto-commit Set
 
-* Send: "AUTOCOMMIT <YES/NO>"
-* Receive: "AUTOMMIT: YES" or "AUTOCOMMIT: NO"
+* Send: "AUTOCOMMIT <1/0>"
+* Receive: "AUTOMMIT: ON" or "AUTOCOMMIT: OFF"
 
 Set the auto commit setting.
 
