@@ -56,6 +56,39 @@ inline void iwatchdog_tick(void)
 	IWDG_KR = 0xAA; // Reset the counter
 }
 
+static void write_str(const char *prefix, const char *val)
+{
+	uart_write_str(prefix);
+	uart_write_str(val);
+	uart_write_str("\r\n");
+}
+
+static void write_onoff(const char *prefix, uint8_t on)
+{
+	write_str(prefix, on ? "ON" : "OFF");
+}
+
+static void write_millivolt(const char *prefix, uint16_t mv)
+{
+	uart_write_str(prefix);
+	uart_write_millivolt(mv);
+	uart_write_str("\r\n");
+}
+
+static void write_milliamp(const char *prefix, uint16_t ma)
+{
+	uart_write_str(prefix);
+	uart_write_milliamp(ma);
+	uart_write_str("\r\n");
+}
+
+static void write_int(const char *prefix, uint16_t val)
+{
+	uart_write_str(prefix);
+	uart_write_int(val);
+	uart_write_str("\r\n");
+}
+
 static void commit_output()
 {
 	output_commit(&cfg_output, &cfg_system, state.constant_current);
@@ -178,39 +211,6 @@ static void set_autocommit(uint8_t *s)
 		uart_write_str(s);
 		uart_write_str("\r\n");
 	}
-}
-
-static void write_str(const char *prefix, const char *val)
-{
-	uart_write_str(prefix);
-	uart_write_str(val);
-	uart_write_str("\r\n");
-}
-
-static void write_onoff(const char *prefix, uint8_t on)
-{
-	write_str(prefix, on ? "ON" : "OFF");
-}
-
-static void write_millivolt(const char *prefix, uint16_t mv)
-{
-	uart_write_str(prefix);
-	uart_write_millivolt(mv);
-	uart_write_str("\r\n");
-}
-
-static void write_milliamp(const char *prefix, uint16_t ma)
-{
-	uart_write_str(prefix);
-	uart_write_milliamp(ma);
-	uart_write_str("\r\n");
-}
-
-static void write_int(const char *prefix, uint16_t val)
-{
-	uart_write_str(prefix);
-	uart_write_int(val);
-	uart_write_str("\r\n");
 }
 
 static uint32_t _parse_uint(uint8_t *s)
