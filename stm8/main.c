@@ -576,7 +576,7 @@ inline void read_state(void)
 	uint8_t tmp;
 
 #if DEBUG
-	tmp = (PC_IDR & (1<<3)) ? 1 : 0;
+	tmp = (PC_IDR >> 3 ) & 1;
 	if (state.pc3 != tmp) {
 		uart_write_str("PC3 is now ");
 		uart_write_ch('0' + tmp);
@@ -585,7 +585,7 @@ inline void read_state(void)
 	}
 #endif
 
-	tmp = (PB_IDR & (1<<5)) ? 1 : 0;
+	tmp = (PB_IDR >> 5) & 1;
 	if (state.constant_current != tmp) {
 		state.constant_current = tmp;
 		output_check_state(&cfg_system, state.constant_current);
