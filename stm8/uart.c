@@ -20,6 +20,8 @@
 #include "fixedpoint.h"
 #include "stm8s.h"
 
+#include <string.h>
+
 static uint8_t uart_write_buf[255];
 static uint8_t uart_write_start;
 static uint8_t uart_write_len;
@@ -76,7 +78,7 @@ static uint8_t uint_to_digits(uint32_t val)
 	uint8_t i;
 	uint8_t num_digits = 0;
 
-	digits_buf[0] = '0';
+	memset(digits_buf, '0', sizeof(digits_buf));
 
 	for (i = 0; i < 12 && val != 0; i++) {
 		uint8_t digit = val % 10;
@@ -107,6 +109,9 @@ void uart_write_millis(uint16_t val)
 	uint8_t highest_nonzero;
 
 	highest_nonzero = uint_to_digits(val);
+
+	if (highest_nonzero < 4)
+		highest_nonzero = 4;
 
 	for (i = highest_nonzero-1; i >= 0; i--) {
 		if (i == 2)
