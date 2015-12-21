@@ -120,11 +120,13 @@ static void set_voltage(uint8_t *s)
 		return;
 
 	if (val > CAP_VMAX) {
-		uart_write_str("VOLTAGE VALUE TOO HIGH\r\n");
+		uart_write_str("VOLTAGE");
+		uart_write_str(" VALUE TOO HIGH\r\n");
 		return;
 	}
 	if (val < CAP_VMIN) {
-		uart_write_str("VOLTAGE VALUE TOO LOW\r\n");
+		uart_write_str("VOLTAGE");
+		uart_write_str(" VALUE TOO LOW\r\n");
 		return;
 	}
 
@@ -145,11 +147,13 @@ static void set_current(uint8_t *s)
 		return;
 
 	if (val > CAP_CMAX) {
-		uart_write_str("CURRENT VALUE TOO HIGH\r\n");
+		uart_write_str("CURRENT");
+		uart_write_str(" VALUE TOO HIGH\r\n");
 		return;
 	}
 	if (val < CAP_CMIN) {
-		uart_write_str("CURRENT VALUE TOO LOW\r\n");
+		uart_write_str("CURRENT");
+		uart_write_str(" VALUE TOO LOW\r\n");
 		return;
 	}
 
@@ -251,7 +255,8 @@ static void process_input()
 	} else if (strcmp(uart_read_buf, "VERSION") == 0) {
 		uart_write_str("VERSION: " FW_VERSION "\r\n");
 	} else if (strcmp(uart_read_buf, "SYSTEM") == 0) {
-		uart_write_str("MODEL: " MODEL "\r\n" "VERSION: " FW_VERSION "\r\n");
+		uart_write_str("MODEL: " MODEL "\r\n");
+		uart_write_str("VERSION: " FW_VERSION "\r\n");
 
 		write_str("NAME: ", cfg_system.name);
 		write_onoff("ONSTARTUP: ", cfg_system.default_on);
