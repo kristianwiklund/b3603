@@ -289,8 +289,8 @@ static void cmd_system(uint8_t *data)
 {
 	(void) data;
 
-	uart_write_str("MODEL: " MODEL "\r\n");
-	uart_write_str("VERSION: " FW_VERSION "\r\n");
+	cmd_model(NULL);
+	cmd_version(NULL);
 
 	write_str("NAME: ", cfg_system.name);
 	write_onoff("ONSTARTUP: ", cfg_system.default_on);
