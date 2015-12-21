@@ -41,6 +41,8 @@
 #define CAP_CMAX 3000 // 3 A
 #define CAP_CSTEP 1 // 1 mA
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
 static cfg_system_t cfg_system;
 static cfg_output_t cfg_output;
 static state_t state;
@@ -115,6 +117,12 @@ static void autocommit(void)
 		uart_write_str("AUTOCOMMIT OFF: CHANGE PENDING ON COMMIT\r\n");
 	}
 }
+
+typedef struct command {
+	const char *name;
+	void (*handler)(uint8_t *data);
+	uint8_t argc;
+} command_t;
 
 static void cmd_sname(uint8_t *name)
 {
@@ -417,96 +425,104 @@ static void cmd_stuck(uint8_t *data)
 }
 #endif
 
-static void process_input()
-{
-	// Eliminate the CR/LF character
-	uart_read_buf[uart_read_len-1] = 0;
-
-	if (strcmp(uart_read_buf, "MODEL") == 0) {
-		cmd_model(NULL);
-	} else if (strcmp(uart_read_buf, "VERSION") == 0) {
-		cmd_version(NULL);
-	} else if (strcmp(uart_read_buf, "SYSTEM") == 0) {
-		cmd_system(NULL);
-	} else if (strcmp(uart_read_buf, "CALIBRATION") == 0) {
-		cmd_calibration(NULL);
-	} else if (strcmp(uart_read_buf, "RCALIBRATION") == 0) {
-		cmd_rcalibration(NULL);
-	} else if (strcmp(uart_read_buf, "LIMITS") == 0) {
-		cmd_limits(NULL);
-	} else if (strcmp(uart_read_buf, "CONFIG") == 0) {
-		cmd_config(NULL);
-	} else if (strcmp(uart_read_buf, "STATUS") == 0) {
-		cmd_status(NULL);
-	} else if (strcmp(uart_read_buf, "RSTATUS") == 0) {
-		cmd_rstatus(NULL);
-	} else if (strcmp(uart_read_buf, "COMMIT") == 0) {
-		cmd_commit(NULL);
-	} else if (strcmp(uart_read_buf, "SAVE") == 0) {
-		cmd_save(NULL);
-	} else if (strcmp(uart_read_buf, "LOAD") == 0) {
-		cmd_load(NULL);
-	} else if (strcmp(uart_read_buf, "RESTORE") == 0) {
-		cmd_restore(NULL);
+static const command_t commands[] = {
+	{ .name = "MODEL", .handler = cmd_model, .argc = 1, },
+	{ .name = "VERSION", .handler = cmd_version, .argc = 1, },
+	{ .name = "SYSTEM", .handler = cmd_system, .argc = 1, },
+	{ .name = "CALIBRATION", .handler = cmd_calibration, .argc = 1, },
+	{ .name = "RCALIBRATION", .handler = cmd_rcalibration, .argc = 1, },
+	{ .name = "LIMITS", .handler = cmd_limits, .argc = 1, },
+	{ .name = "CONFIG", .handler = cmd_config, .argc = 1, },
+	{ .name = "STATUS", .handler = cmd_status, .argc = 1, },
+	{ .name = "RSTATUS", .handler = cmd_rstatus, .argc = 1, },
+	{ .name = "COMMIT", .handler = cmd_commit, .argc = 1, },
+	{ .name = "SAVE", .handler = cmd_save, .argc = 1, },
+	{ .name = "LOAD", .handler = cmd_load, .argc = 1, },
+	{ .name = "RESTORE", .handler = cmd_restore, .argc = 1, },
 #if DEBUG
-	} else if (strcmp(uart_read_buf, "STUCK") == 0) {
-		cmd_stuck(NULL);
+	{ .name = "STUCK", .handler = cmd_stuck, .argc = 1, },
 #endif
-	} else {
-		// Process commands with arguments
-		uint8_t idx;
-		uint8_t space_found = 0;
+	{ .name = "SNAME", .handler = cmd_sname, .argc = 2, },
+	{ .name = "OUTPUT", .handler = cmd_output, .argc = 2, },
+	{ .name = "VOLTAGE", .handler = cmd_voltage, .argc = 2, },
+	{ .name = "CURRENT", .handler = cmd_current, .argc = 2, },
+	{ .name = "AUTOCOMMIT", .handler = cmd_autocommit, .argc = 2, },
+	{ .name = "CALVINADCA", .handler = cmd_cal_vin_adc_a, .argc = 2, },
+	{ .name = "CALVINADCB", .handler = cmd_cal_vin_adc_b, .argc = 2, },
+	{ .name = "CALVOUTADCA", .handler = cmd_cal_vout_adc_a, .argc = 2, },
+	{ .name = "CALVOUTADCB", .handler = cmd_cal_vout_adc_b, .argc = 2, },
+	{ .name = "CALVOUTPWMA", .handler = cmd_cal_vout_pwm_a, .argc = 2, },
+	{ .name = "CALVOUTPWMB", .handler = cmd_cal_vout_pwm_b, .argc = 2, },
+	{ .name = "CALCOUTADCA", .handler = cmd_cal_cout_adc_a, .argc = 2, },
+	{ .name = "CALCOUTADCB", .handler = cmd_cal_cout_adc_b, .argc = 2, },
+	{ .name = "CALCOUTPWMA", .handler = cmd_cal_cout_pwm_a, .argc = 2, },
+	{ .name = "CALCOUTPWMB", .handler = cmd_cal_cout_pwm_b, .argc = 2, },
+};
 
-		for (idx = 0; idx < uart_read_len; idx++) {
-			if (uart_read_buf[idx] == ' ') {
-				uart_read_buf[idx] = 0;
-				space_found = 1;
+#define MAX_ARGC 2
+
+inline uint8_t split_args(uint8_t **argv, uint8_t size)
+{
+	uint8_t *word, word_found = 1;
+	uint8_t argc = 0;
+
+	// Eliminate the CR/LF character
+	uart_read_buf[uart_read_len - 1] = 0;
+
+	for (word = uart_read_buf; *word; word++) {
+		if (*word == ' ') {
+			*word = 0;
+			word_found = 1;
+		} else if (word_found) {
+			argv[argc++] = word;
+			if (argc >= size) {
+				argc = 0;
 				break;
 			}
-		}
-
-		if (space_found) {
-			if (strcmp(uart_read_buf, "SNAME") == 0) {
-				cmd_sname(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "OUTPUT") == 0) {
-				cmd_output(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "VOLTAGE") == 0) {
-				cmd_voltage(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CURRENT") == 0) {
-				cmd_current(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "AUTOCOMMIT") == 0) {
-				cmd_autocommit(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALVINADCA") == 0) {
-				cmd_cal_vin_adc_a(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALVINADCB") == 0) {
-				cmd_cal_vin_adc_b(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALVOUTADCA") == 0) {
-				cmd_cal_vout_adc_a(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALVOUTADCB") == 0) {
-				cmd_cal_vout_adc_b(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALVOUTPWMA") == 0) {
-				cmd_cal_vout_pwm_a(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALVOUTPWMB") == 0) {
-				cmd_cal_vout_pwm_b(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALCOUTADCA") == 0) {
-				cmd_cal_cout_adc_a(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALCOUTADCB") == 0) {
-				cmd_cal_cout_adc_b(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALCOUTPWMA") == 0) {
-				cmd_cal_cout_pwm_a(uart_read_buf + idx + 1);
-			} else if (strcmp(uart_read_buf, "CALCOUTPWMB") == 0) {
-				cmd_cal_cout_pwm_b(uart_read_buf + idx + 1);
-			} else {
-				uart_write_str("UNKNOWN COMMAND!\r\n");
-			}
-		} else {
-			uart_write_str("UNKNOWN COMMAND\r\n");
+			word_found = 0;
 		}
 	}
-	uart_write_str("DONE\r\n");
+
+	argv[argc] = NULL;
 
 	uart_read_len = 0;
 	read_newline = 0;
+
+	return argc;
+}
+
+inline const struct command *lookup_command(uint8_t *name)
+{
+	uint8_t idx;
+
+	for (idx = 0; idx < ARRAY_SIZE(commands); idx++) {
+		if (strcmp(name, commands[idx].name) == 0) {
+			return &commands[idx];
+		}
+	}
+
+	return NULL;
+}
+
+static void process_input()
+{
+	uint8_t argc, *argv[MAX_ARGC + 1];
+	const struct command *cmd = NULL;
+
+	argc = split_args(argv, ARRAY_SIZE(argv));
+	if (argc >= 1) {
+		cmd = lookup_command(argv[0]);
+	}
+
+	if (!cmd) {
+		uart_write_str("UNKNOWN COMMAND\r\n");
+	} else if (argc != cmd->argc) {
+		uart_write_str("ARGUMENT ERROR\r\n");
+	} else {
+		cmd->handler(argv[1]);
+	}
+
+	uart_write_str("DONE\r\n");
 }
 
 inline void clk_init()
