@@ -58,11 +58,16 @@ inline void iwatchdog_tick(void)
 	IWDG_KR = 0xAA; // Reset the counter
 }
 
+static void write_newline(void)
+{
+	uart_write_str("\r\n");
+}
+
 static void write_str(const char *prefix, const char *val)
 {
 	uart_write_str(prefix);
 	uart_write_str(val);
-	uart_write_str("\r\n");
+	write_newline();
 }
 
 static void write_onoff(const char *prefix, uint8_t on)
@@ -74,14 +79,14 @@ static void write_millis(const char *prefix, uint16_t val)
 {
 	uart_write_str(prefix);
 	uart_write_millis(val);
-	uart_write_str("\r\n");
+	write_newline();
 }
 
 static void write_uint(const char *prefix, uint32_t val)
 {
 	uart_write_str(prefix);
 	uart_write_uint(val);
-	uart_write_str("\r\n");
+	write_newline();
 }
 
 static void write_calibration_fixed_point(const char* prefix, calibrate_t *cal)
@@ -91,7 +96,7 @@ static void write_calibration_fixed_point(const char* prefix, calibrate_t *cal)
 	uart_write_fixed_point(cal->a);
 	uart_write_ch('/');
 	uart_write_fixed_point(cal->b);
-	uart_write_str("\r\n");
+	write_newline();
 }
 
 static void write_calibration_uint(const char* prefix, calibrate_t *cal)
@@ -101,7 +106,7 @@ static void write_calibration_uint(const char* prefix, calibrate_t *cal)
 	uart_write_uint(cal->a);
 	uart_write_ch('/');
 	uart_write_uint(cal->b);
-	uart_write_str("\r\n");
+	write_newline();
 }
 
 static void commit_output()
@@ -263,7 +268,7 @@ static void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 		uart_write_str("CALIBRATION SET ");
 	}
 	uart_write_str(name);
-	uart_write_str("\r\n");
+	write_newline();
 }
 
 #define CMD_CAL_WRAPPER(name, text, var) \
