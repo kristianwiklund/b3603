@@ -19,10 +19,10 @@
 #include "parse.h"
 #include "uart.h"
 
-static uint16_t parse_num(uint8_t *s, uint8_t **stop, uint8_t *digits_seen)
+uint32_t parse_num(uint8_t *s, uint8_t **stop, uint8_t *digits_seen)
 {
 	uint8_t digit;
-	uint16_t num = 0;
+	uint32_t num = 0;
 
 	*digits_seen = 0;
 
@@ -42,7 +42,7 @@ uint16_t parse_millinum(uint8_t *s)
 	uint8_t *t = s;
 	uint8_t *stop;
 	uint32_t fraction_digits = 0;
-	uint16_t whole_digits = 0;
+	uint32_t whole_digits = 0;
 	uint8_t digits_seen;
 
 	whole_digits = parse_num(s, &stop, &digits_seen);

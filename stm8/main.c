@@ -240,33 +240,14 @@ static void cmd_onstartup(uint8_t *s)
 	}
 }
 
-inline uint32_t _parse_uint(uint8_t *s)
+
+static void cmd_cal(const char *name, uint32_t *pval, uint8_t *s)
 {
-	uint32_t val = 0;
+	uint8_t *stop;
+	uint8_t digits;
 
-	for (; *s; s++) {
-		uint8_t ch = *s;
-		if (ch >= '0' && ch <= '9') {
-			val = val*10 + (ch-'0');
-		} else {
-			return 0xFFFFFFFF;
-		}
-	}
-
-	return val;
-}
-
-static void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
-{
-	uint32_t val = _parse_uint(s);
-	if (val == 0xFFFFFFFF) {
-		uart_write_str("FAILED TO PARSE ");
-		uart_write_str(s);
-		uart_write_str(" FOR ");
-	} else {
-		*pval = val;
-		uart_write_str("CALIBRATION SET ");
-	}
+	*pval = parse_num(s, &stop, &digits);
+	uart_write_str("CALIBRATION SET ");
 	uart_write_str(name);
 	write_newline();
 }
@@ -274,7 +255,7 @@ static void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 #define CMD_CAL_WRAPPER(name, text, var) \
 	static void name(uint8_t *data) \
 	{ \
-		parse_uint(text, var, data); \
+		cmd_cal(text, var, data); \
 	}
 
 CMD_CAL_WRAPPER(cmd_cal_vin_adc_a, "VIN ADC A", &cfg_system.vin_adc.a)
