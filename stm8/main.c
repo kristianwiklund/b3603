@@ -252,86 +252,177 @@ static void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 	uart_write_str("\r\n");
 }
 
+#define CMD_CAL_WRAPPER(name, text, var) \
+	static void name(uint8_t *data) \
+	{ \
+		parse_uint(text, var, data); \
+	}
+
+CMD_CAL_WRAPPER(cmd_cal_vin_adc_a, "VIN ADC A", &cfg_system.vin_adc.a)
+CMD_CAL_WRAPPER(cmd_cal_vin_adc_b, "VIN ADC B", &cfg_system.vin_adc.b)
+CMD_CAL_WRAPPER(cmd_cal_vout_adc_a, "VOUT ADC A", &cfg_system.vout_adc.a)
+CMD_CAL_WRAPPER(cmd_cal_vout_adc_b, "VOUT ADC B", &cfg_system.vout_adc.b)
+CMD_CAL_WRAPPER(cmd_cal_vout_pwm_a, "VOUT PWM A", &cfg_system.vout_pwm.a)
+CMD_CAL_WRAPPER(cmd_cal_vout_pwm_b, "VOUT PWM B", &cfg_system.vout_pwm.b)
+CMD_CAL_WRAPPER(cmd_cal_cout_adc_a, "COUT ADC A", &cfg_system.cout_adc.a)
+CMD_CAL_WRAPPER(cmd_cal_cout_adc_b, "COUT ADC B", &cfg_system.cout_adc.b)
+CMD_CAL_WRAPPER(cmd_cal_cout_pwm_a, "COUT PWM A", &cfg_system.cout_pwm.a)
+CMD_CAL_WRAPPER(cmd_cal_cout_pwm_b, "COUT PWM B", &cfg_system.cout_pwm.b)
+
+#undef CMD_CAL_WRAPPER
+
+static void cmd_model(void)
+{
+	uart_write_str("MODEL: " MODEL "\r\n");
+}
+
+static void cmd_version(void)
+{
+	uart_write_str("VERSION: " FW_VERSION "\r\n");
+}
+
+static void cmd_system(void)
+{
+	uart_write_str("MODEL: " MODEL "\r\n");
+	uart_write_str("VERSION: " FW_VERSION "\r\n");
+
+	write_str("NAME: ", cfg_system.name);
+	write_onoff("ONSTARTUP: ", cfg_system.default_on);
+	write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
+}
+
+static void cmd_calibration(void)
+{
+	write_calibration_fixed_point("VIN ADC: ", &cfg_system.vin_adc);
+	write_calibration_fixed_point("VOUT ADC: ", &cfg_system.vout_adc);
+	write_calibration_fixed_point("COUT ADC: ", &cfg_system.cout_adc);
+	write_calibration_fixed_point("VOUT PWM: ", &cfg_system.vout_pwm);
+	write_calibration_fixed_point("COUT PWM: ", &cfg_system.cout_pwm);
+}
+
+static void cmd_rcalibration(void)
+{
+	write_calibration_uint("VIN ADC: ", &cfg_system.vin_adc);
+	write_calibration_uint("VOUT ADC: ", &cfg_system.vout_adc);
+	write_calibration_uint("COUT ADC: ", &cfg_system.cout_adc);
+	write_calibration_uint("VOUT PWM: ", &cfg_system.vout_pwm);
+	write_calibration_uint("COUT PWM: ", &cfg_system.cout_pwm);
+}
+
+static void cmd_limits(void)
+{
+	uart_write_str("LIMITS:\r\n");
+	write_millis("VMIN: ", CAP_VMIN);
+	write_millis("VMAX: ", CAP_VMAX);
+	write_millis("VSTEP: ", CAP_VSTEP);
+	write_millis("CMIN: ", CAP_CMIN);
+	write_millis("CMAX: ", CAP_CMAX);
+	write_millis("CSTEP: ", CAP_CSTEP);
+}
+
+static void cmd_config(void)
+{
+	uart_write_str("CONFIG:\r\n");
+	write_onoff("OUTPUT: ", cfg_system.output);
+	write_millis("VSET: ", cfg_output.vset);
+	write_millis("CSET: ", cfg_output.cset);
+	write_millis("VSHUTDOWN: ", cfg_output.vshutdown);
+	write_millis("CSHUTDOWN: ", cfg_output.cshutdown);
+}
+
+static void cmd_status(void)
+{
+	uart_write_str("STATUS:\r\n");
+	write_onoff("OUTPUT: ", cfg_system.output);
+	write_millis("VIN: ", state.vin);
+	write_millis("VOUT: ", state.vout);
+	write_millis("COUT: ", state.cout);
+	write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
+}
+
+static void cmd_rstatus(void)
+{
+	uart_write_str("RSTATUS:\r\n");
+	write_onoff("OUTPUT: ", cfg_system.output);
+	write_uint("VIN ADC: ", state.vin_raw);
+	write_millis("VIN: ", state.vin);
+	write_uint("VOUT ADC: ", state.vout_raw);
+	write_millis("VOUT: ", state.vout);
+	write_uint("COUT ADC: ", state.cout_raw);
+	write_millis("COUT: ", state.cout);
+	write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
+}
+
+static void cmd_commit(void)
+{
+	commit_output();
+}
+
+static void cmd_save(void)
+{
+	config_save_system(&cfg_system);
+	config_save_output(&cfg_output);
+	uart_write_str("SAVED\r\n");
+}
+
+static void cmd_load(void)
+{
+	config_load_system(&cfg_system);
+	config_load_output(&cfg_output);
+	autocommit();
+}
+
+static void cmd_restore(void)
+{
+	config_default_system(&cfg_system);
+	config_default_output(&cfg_output);
+	autocommit();
+}
+
+#if DEBUG
+static void cmd_stuck(void)
+{
+	// Allows debugging of the IWDG feature
+	uart_write_str("STUCK\r\n");
+	uart_write_flush();
+	while(1); // Induce watchdog reset
+}
+#endif
+
 static void process_input()
 {
 	// Eliminate the CR/LF character
 	uart_read_buf[uart_read_len-1] = 0;
 
 	if (strcmp(uart_read_buf, "MODEL") == 0) {
-		uart_write_str("MODEL: " MODEL "\r\n");
+		cmd_model();
 	} else if (strcmp(uart_read_buf, "VERSION") == 0) {
-		uart_write_str("VERSION: " FW_VERSION "\r\n");
+		cmd_version();
 	} else if (strcmp(uart_read_buf, "SYSTEM") == 0) {
-		uart_write_str("MODEL: " MODEL "\r\n");
-		uart_write_str("VERSION: " FW_VERSION "\r\n");
-
-		write_str("NAME: ", cfg_system.name);
-		write_onoff("ONSTARTUP: ", cfg_system.default_on);
-		write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
+		cmd_system();
 	} else if (strcmp(uart_read_buf, "CALIBRATION") == 0) {
-		write_calibration_fixed_point("VIN ADC: ", &cfg_system.vin_adc);
-		write_calibration_fixed_point("VOUT ADC: ", &cfg_system.vout_adc);
-		write_calibration_fixed_point("COUT ADC: ", &cfg_system.cout_adc);
-		write_calibration_fixed_point("VOUT PWM: ", &cfg_system.vout_pwm);
-		write_calibration_fixed_point("COUT PWM: ", &cfg_system.cout_pwm);
+		cmd_calibration();
 	} else if (strcmp(uart_read_buf, "RCALIBRATION") == 0) {
-		write_calibration_uint("VIN ADC: ", &cfg_system.vin_adc);
-		write_calibration_uint("VOUT ADC: ", &cfg_system.vout_adc);
-		write_calibration_uint("COUT ADC: ", &cfg_system.cout_adc);
-		write_calibration_uint("VOUT PWM: ", &cfg_system.vout_pwm);
-		write_calibration_uint("COUT PWM: ", &cfg_system.cout_pwm);
+		cmd_rcalibration();
 	} else if (strcmp(uart_read_buf, "LIMITS") == 0) {
-		uart_write_str("LIMITS:\r\n");
-		write_millis("VMIN: ", CAP_VMIN);
-		write_millis("VMAX: ", CAP_VMAX);
-		write_millis("VSTEP: ", CAP_VSTEP);
-		write_millis("CMIN: ", CAP_CMIN);
-		write_millis("CMAX: ", CAP_CMAX);
-		write_millis("CSTEP: ", CAP_CSTEP);
+		cmd_limits();
 	} else if (strcmp(uart_read_buf, "CONFIG") == 0) {
-		uart_write_str("CONFIG:\r\n");
-		write_onoff("OUTPUT: ", cfg_system.output);
-		write_millis("VSET: ", cfg_output.vset);
-		write_millis("CSET: ", cfg_output.cset);
-		write_millis("VSHUTDOWN: ", cfg_output.vshutdown);
-		write_millis("CSHUTDOWN: ", cfg_output.cshutdown);
+		cmd_config();
 	} else if (strcmp(uart_read_buf, "STATUS") == 0) {
-		uart_write_str("STATUS:\r\n");
-		write_onoff("OUTPUT: ", cfg_system.output);
-		write_millis("VIN: ", state.vin);
-		write_millis("VOUT: ", state.vout);
-		write_millis("COUT: ", state.cout);
-		write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
+		cmd_status();
 	} else if (strcmp(uart_read_buf, "RSTATUS") == 0) {
-		uart_write_str("RSTATUS:\r\n");
-		write_onoff("OUTPUT: ", cfg_system.output);
-		write_uint("VIN ADC: ", state.vin_raw);
-		write_millis("VIN: ", state.vin);
-		write_uint("VOUT ADC: ", state.vout_raw);
-		write_millis("VOUT: ", state.vout);
-		write_uint("COUT ADC: ", state.cout_raw);
-		write_millis("COUT: ", state.cout);
-		write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
+		cmd_rstatus();
 	} else if (strcmp(uart_read_buf, "COMMIT") == 0) {
-		commit_output();
+		cmd_commit();
 	} else if (strcmp(uart_read_buf, "SAVE") == 0) {
-		config_save_system(&cfg_system);
-		config_save_output(&cfg_output);
-		uart_write_str("SAVED\r\n");
+		cmd_save();
 	} else if (strcmp(uart_read_buf, "LOAD") == 0) {
-		config_load_system(&cfg_system);
-		config_load_output(&cfg_output);
-		autocommit();
+		cmd_load();
 	} else if (strcmp(uart_read_buf, "RESTORE") == 0) {
-		config_default_system(&cfg_system);
-		config_default_output(&cfg_output);
-		autocommit();
+		cmd_restore();
 #if DEBUG
 	} else if (strcmp(uart_read_buf, "STUCK") == 0) {
-		// Allows debugging of the IWDG feature
-		uart_write_str("STUCK\r\n");
-		uart_write_flush();
-		while(1); // Induce watchdog reset
+		cmd_stuck();
 #endif
 	} else {
 		// Process commands with arguments
@@ -358,25 +449,25 @@ static void process_input()
 			} else if (strcmp(uart_read_buf, "AUTOCOMMIT") == 0) {
 				set_autocommit(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVINADCA") == 0) {
-				parse_uint("VIN ADC A", &cfg_system.vin_adc.a, uart_read_buf+idx+1);
+				cmd_cal_vin_adc_a(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVINADCB") == 0) {
-				parse_uint("VIN ADC B", &cfg_system.vin_adc.b, uart_read_buf+idx+1);
+				cmd_cal_vin_adc_b(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVOUTADCA") == 0) {
-				parse_uint("VOUT ADC A", &cfg_system.vout_adc.a, uart_read_buf+idx+1);
+				cmd_cal_vout_adc_a(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVOUTADCB") == 0) {
-				parse_uint("VOUT ADC B", &cfg_system.vout_adc.b, uart_read_buf+idx+1);
+				cmd_cal_vout_adc_b(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVOUTPWMA") == 0) {
-				parse_uint("VOUT PWM A", &cfg_system.vout_pwm.a, uart_read_buf+idx+1);
+				cmd_cal_vout_pwm_a(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVOUTPWMB") == 0) {
-				parse_uint("VOUT PWM B", &cfg_system.vout_pwm.b, uart_read_buf+idx+1);
+				cmd_cal_vout_pwm_b(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALCOUTADCA") == 0) {
-				parse_uint("COUT ADC A", &cfg_system.cout_adc.a, uart_read_buf+idx+1);
+				cmd_cal_cout_adc_a(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALCOUTADCB") == 0) {
-				parse_uint("COUT ADC B", &cfg_system.cout_adc.b, uart_read_buf+idx+1);
+				cmd_cal_cout_adc_b(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALCOUTPWMA") == 0) {
-				parse_uint("COUT PWM A", &cfg_system.cout_pwm.a, uart_read_buf+idx+1);
+				cmd_cal_cout_pwm_a(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALCOUTPWMB") == 0) {
-				parse_uint("COUT PWM B", &cfg_system.cout_pwm.b, uart_read_buf+idx+1);
+				cmd_cal_cout_pwm_b(uart_read_buf + idx + 1);
 			} else {
 				uart_write_str("UNKNOWN COMMAND!\r\n");
 			}
