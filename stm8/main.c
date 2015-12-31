@@ -139,16 +139,31 @@ static void cmd_sname(uint8_t *name)
 	write_str("SNAME: ", cfg_system.name);
 }
 
-static void cmd_output(uint8_t *s)
+static uint8_t parse_boolean(uint8_t *s, uint8_t *bool)
 {
 	if ((s[0] == '0' || s[0] == '1') && s[1] == 0) {
-		cfg_system.output = s[0] - '0';
+		*bool = s[0] - '0';
+		return 1;
+	}
+
+	return 0;
+}
+
+static void write_boolean_help(uint8_t *what, uint8_t *s)
+{
+	uart_write_str(what);
+	uart_write_str(" takes either 0/NO/OFF for OFF or 1/YES/OF for ON, received: \"");
+	uart_write_str(s);
+	uart_write_str("\"\r\n");
+}
+
+static void cmd_output(uint8_t *s)
+{
+	if (parse_boolean(s, &cfg_system.output)) {
 		write_onoff("OUTPUT: ", cfg_system.output);
 		autocommit();
 	} else {
-		uart_write_str("OUTPUT takes either 0 for OFF or 1 for ON, received: \"");
-		uart_write_str(s);
-		uart_write_str("\"\r\n");
+		write_boolean_help("OUTPUT", s);
 	}
 }
 
@@ -204,13 +219,10 @@ static void cmd_current(uint8_t *s)
 
 static void cmd_autocommit(uint8_t *s)
 {
-	if ((s[0] == '0' || s[0] == '1') && s[1] == 0) {
-		cfg_system.autocommit = s[0] - '0';
+	if (parse_boolean(s, &cfg_system.autocommit)) {
 		write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
 	} else {
-		uart_write_str("AUTOCOMMIT takes either 0 for OFF or 1 for ON, received: \"");
-		uart_write_str(s);
-		uart_write_str("\"\r\n");
+		write_boolean_help("AUTOCOMMIT", s);
 	}
 }
 
