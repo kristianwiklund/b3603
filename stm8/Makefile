@@ -23,7 +23,7 @@ test: $(TESTUTILS)
 -include $(DEP)
 
 check_size: b3603.ihx
-		@CODESIZE=$$(grep '^CODE' b3603.map |head -n1 | sed -e 's/^.*=\s*\([0-9]\+\).*$$/\1/'); \
+		@CODESIZE=$$(sort -k 1.8,1.9 -k 1.4,1.7 $< | ihex2bin | wc -c); \
 			 if [ "$$CODESIZE" -gt 8192 ]; then echo "Code is too large, it is $$CODESIZE bytes"; exit 1; \
 			 else echo "Code fits the flash, it is $$CODESIZE"; \
 			 fi
