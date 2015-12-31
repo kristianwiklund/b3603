@@ -32,7 +32,7 @@
 
 static const cfg_system_t default_cfg_system = {
 	.version = SYSTEM_CFG_VERSION,
-	.name = "Unnamed",
+	.name = DEFAULT_NAME_STR,
 	.default_on = 0,
 	.output = 0,
 	.autocommit = 1,
