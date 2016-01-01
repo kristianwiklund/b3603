@@ -280,14 +280,14 @@ static void cmd_model(uint8_t *data)
 {
 	(void) data;
 
-	uart_write_str("MODEL: " MODEL "\r\n");
+	write_str("MODEL", MODEL);
 }
 
 static void cmd_version(uint8_t *data)
 {
 	(void) data;
 
-	uart_write_str("VERSION: " FW_VERSION "\r\n");
+	write_str("VERSION", FW_VERSION);
 }
 
 static void cmd_system(uint8_t *data)
