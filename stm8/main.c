@@ -107,7 +107,7 @@ static void commit_output()
 	output_commit(&cfg_output, &cfg_system, state.constant_current);
 }
 
-static void set_name(uint8_t *name)
+static void cmd_sname(uint8_t *name)
 {
 	uint8_t idx;
 
@@ -131,7 +131,7 @@ static void autocommit(void)
 	}
 }
 
-static void set_output(uint8_t *s)
+static void cmd_output(uint8_t *s)
 {
 	if (s[1] != 0) {
 		uart_write_str("OUTPUT takes either 0 for OFF or 1 for ON, received: \"");
@@ -155,7 +155,7 @@ static void set_output(uint8_t *s)
 	autocommit();
 }
 
-static void set_voltage(uint8_t *s)
+static void cmd_voltage(uint8_t *s)
 {
 	fixed_t val;
 
@@ -180,7 +180,7 @@ static void set_voltage(uint8_t *s)
 	autocommit();
 }
 
-static void set_current(uint8_t *s)
+static void cmd_current(uint8_t *s)
 {
 	fixed_t val;
 
@@ -205,7 +205,7 @@ static void set_current(uint8_t *s)
 	autocommit();
 }
 
-static void set_autocommit(uint8_t *s)
+static void cmd_autocommit(uint8_t *s)
 {
 	if (strcmp(s, "1") == 0 || strcmp(s, "YES") == 0) {
 		cfg_system.autocommit = 1;
@@ -467,15 +467,15 @@ static void process_input()
 
 		if (space_found) {
 			if (strcmp(uart_read_buf, "SNAME") == 0) {
-				set_name(uart_read_buf + idx + 1);
+				cmd_sname(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "OUTPUT") == 0) {
-				set_output(uart_read_buf + idx + 1);
+				cmd_output(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "VOLTAGE") == 0) {
-				set_voltage(uart_read_buf + idx + 1);
+				cmd_voltage(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CURRENT") == 0) {
-				set_current(uart_read_buf + idx + 1);
+				cmd_current(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "AUTOCOMMIT") == 0) {
-				set_autocommit(uart_read_buf + idx + 1);
+				cmd_autocommit(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVINADCA") == 0) {
 				cmd_cal_vin_adc_a(uart_read_buf + idx + 1);
 			} else if (strcmp(uart_read_buf, "CALVINADCB") == 0) {
