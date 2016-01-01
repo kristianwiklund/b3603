@@ -397,6 +397,8 @@ static void cmd_stuck(const command_t *cmd, uint8_t **argv)
 }
 #endif
 
+static void cmd_help(const command_t *cmd, uint8_t **argv);
+
 static const command_t commands[] = {
 	{ .name = "MODEL", .handler = cmd_model, .argc = 1, },
 	{ .name = "VERSION", .handler = cmd_version, .argc = 1, },
@@ -414,6 +416,7 @@ static const command_t commands[] = {
 #if DEBUG
 	{ .name = "STUCK", .handler = cmd_stuck, .argc = 1, },
 #endif
+	{ .name = "HELP", .handler = cmd_help, .argc = 1, },
 	{ .name = "SNAME", .handler = cmd_sname, .argc = 2, },
 	{ .name = "ECHO", .handler = cmd_set_bool, .argc = 2, .aux = &uart_echo, },
 	{ .name = "OUTPUT", .handler = cmd_set_bool, .argc = 2, .aux = &cfg_system.output, },
@@ -434,6 +437,23 @@ static const command_t commands[] = {
 };
 
 #define MAX_ARGC 2
+
+static void cmd_help(const command_t *cmd, uint8_t **argv)
+{
+	uint8_t idx;
+
+	(void) cmd;
+	(void) argv;
+
+	uart_write_str("Available commands:\r\n");
+	for (idx = 0; idx < ARRAY_SIZE(commands); idx++) {
+		uart_write_str("- ");
+		uart_write_str(commands[idx].name);
+		write_newline();
+		uart_flush_writes();
+		iwatchdog_tick();
+	}
+}
 
 inline uint8_t split_args(uint8_t **argv, uint8_t size)
 {
