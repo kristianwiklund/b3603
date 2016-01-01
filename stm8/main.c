@@ -130,13 +130,16 @@ static void autocommit(void)
 
 typedef struct command {
 	const char *name;
-	void (*handler)(uint8_t *data);
+	void (*handler)(const struct command *cmd, uint8_t *data);
 	uint8_t argc;
+	void *aux;
 } command_t;
 
-static void cmd_sname(uint8_t *name)
+static void cmd_sname(const command_t *cmd, uint8_t *name)
 {
 	uint8_t idx;
+
+	(void) cmd;
 
 	for (idx = 0; name[idx] != 0; idx++) {
 		if (!isprint(name[idx]))
@@ -167,8 +170,10 @@ static void write_boolean_help(uint8_t *what, uint8_t *s)
 	uart_write_str("\"\r\n");
 }
 
-static void cmd_output(uint8_t *s)
+static void cmd_output(const command_t *cmd, uint8_t *s)
 {
+	(void) cmd;
+
 	if (parse_boolean(s, &cfg_system.output)) {
 		write_onoff("OUTPUT", cfg_system.output);
 		autocommit();
@@ -177,9 +182,11 @@ static void cmd_output(uint8_t *s)
 	}
 }
 
-static void cmd_voltage(uint8_t *s)
+static void cmd_voltage(const command_t *cmd, uint8_t *s)
 {
 	fixed_t val;
+
+	(void) cmd;
 
 	val = parse_millinum(s);
 	if (val == 0xFFFF)
@@ -202,9 +209,11 @@ static void cmd_voltage(uint8_t *s)
 	autocommit();
 }
 
-static void cmd_current(uint8_t *s)
+static void cmd_current(const command_t *cmd, uint8_t *s)
 {
 	fixed_t val;
+
+	(void) cmd;
 
 	val = parse_millinum(s);
 	if (val == 0xFFFF)
@@ -227,8 +236,10 @@ static void cmd_current(uint8_t *s)
 	autocommit();
 }
 
-static void cmd_autocommit(uint8_t *s)
+static void cmd_autocommit(const command_t *cmd, uint8_t *s)
 {
+	(void) cmd;
+
 	if (parse_boolean(s, &cfg_system.autocommit)) {
 		write_onoff("AUTOCOMMIT", cfg_system.autocommit);
 	} else {
@@ -236,8 +247,10 @@ static void cmd_autocommit(uint8_t *s)
 	}
 }
 
-static void cmd_onstartup(uint8_t *s)
+static void cmd_onstartup(const command_t *cmd, uint8_t *s)
 {
+	(void) cmd;
+
 	if (parse_boolean(s, &cfg_system.default_on)) {
 		write_onoff("ONSTARTUP", cfg_system.default_on);
 	} else {
@@ -258,8 +271,9 @@ static void cmd_cal(const char *name, uint32_t *pval, uint8_t *s)
 }
 
 #define CMD_CAL_WRAPPER(name, text, var) \
-	static void name(uint8_t *data) \
+	static void name(const command_t *cmd, uint8_t *data) \
 	{ \
+		(void) cmd; \
 		cmd_cal(text, var, data); \
 	}
 
@@ -276,34 +290,38 @@ CMD_CAL_WRAPPER(cmd_cal_cout_pwm_b, "COUT PWM B", &cfg_system.cout_pwm.b)
 
 #undef CMD_CAL_WRAPPER
 
-static void cmd_model(uint8_t *data)
+static void cmd_model(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	write_str("MODEL", MODEL);
 }
 
-static void cmd_version(uint8_t *data)
+static void cmd_version(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	write_str("VERSION", FW_VERSION);
 }
 
-static void cmd_system(uint8_t *data)
+static void cmd_system(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
-	cmd_model(NULL);
-	cmd_version(NULL);
+	cmd_model(NULL, NULL);
+	cmd_version(NULL, NULL);
 
 	write_str("NAME", cfg_system.name);
 	write_onoff("ONSTARTUP", cfg_system.default_on);
 	write_onoff("AUTOCOMMIT", cfg_system.autocommit);
 }
 
-static void cmd_calibration(uint8_t *data)
+static void cmd_calibration(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	write_calibration_fixed_point("VIN ADC", &cfg_system.vin_adc);
@@ -313,8 +331,9 @@ static void cmd_calibration(uint8_t *data)
 	write_calibration_fixed_point("COUT PWM", &cfg_system.cout_pwm);
 }
 
-static void cmd_rcalibration(uint8_t *data)
+static void cmd_rcalibration(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	write_calibration_uint("VIN ADC", &cfg_system.vin_adc);
@@ -324,8 +343,9 @@ static void cmd_rcalibration(uint8_t *data)
 	write_calibration_uint("COUT PWM", &cfg_system.cout_pwm);
 }
 
-static void cmd_limits(uint8_t *data)
+static void cmd_limits(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	uart_write_str("LIMITS:\r\n");
@@ -337,8 +357,9 @@ static void cmd_limits(uint8_t *data)
 	write_millis("CSTEP", CAP_CSTEP);
 }
 
-static void cmd_config(uint8_t *data)
+static void cmd_config(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	uart_write_str("CONFIG:\r\n");
@@ -349,8 +370,9 @@ static void cmd_config(uint8_t *data)
 	write_millis("CSHUTDOWN", cfg_output.cshutdown);
 }
 
-static void cmd_status(uint8_t *data)
+static void cmd_status(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	uart_write_str("STATUS:\r\n");
@@ -361,8 +383,9 @@ static void cmd_status(uint8_t *data)
 	write_str("CONSTANT", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
-static void cmd_rstatus(uint8_t *data)
+static void cmd_rstatus(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	uart_write_str("RSTATUS:\r\n");
@@ -376,15 +399,17 @@ static void cmd_rstatus(uint8_t *data)
 	write_str("CONSTANT", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
-static void cmd_commit(uint8_t *data)
+static void cmd_commit(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	commit_output();
 }
 
-static void cmd_save(uint8_t *data)
+static void cmd_save(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	config_save_system(&cfg_system);
@@ -392,8 +417,9 @@ static void cmd_save(uint8_t *data)
 	uart_write_str("SAVED\r\n");
 }
 
-static void cmd_load(uint8_t *data)
+static void cmd_load(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	config_load_system(&cfg_system);
@@ -401,8 +427,9 @@ static void cmd_load(uint8_t *data)
 	autocommit();
 }
 
-static void cmd_restore(uint8_t *data)
+static void cmd_restore(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	config_default_system(&cfg_system);
@@ -411,8 +438,9 @@ static void cmd_restore(uint8_t *data)
 }
 
 #if DEBUG
-static void cmd_stuck(uint8_t *data)
+static void cmd_stuck(const command_t *cmd, uint8_t *data)
 {
+	(void) cmd;
 	(void) data;
 
 	// Allows debugging of the IWDG feature
@@ -517,7 +545,7 @@ inline void process_input()
 	} else if (argc != cmd->argc) {
 		uart_write_str("ARGUMENT ERROR\r\n");
 	} else {
-		cmd->handler(argv[1]);
+		cmd->handler(cmd, argv[1]);
 	}
 
 	uart_write_str("DONE\r\n");
