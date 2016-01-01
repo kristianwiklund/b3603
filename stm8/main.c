@@ -226,6 +226,15 @@ static void cmd_autocommit(uint8_t *s)
 	}
 }
 
+static void cmd_onstartup(uint8_t *s)
+{
+	if (parse_boolean(s, &cfg_system.default_on)) {
+		write_onoff("ONSTARTUP: ", cfg_system.default_on);
+	} else {
+		write_boolean_help("ONSTARTUP", s);
+	}
+}
+
 inline uint32_t _parse_uint(uint8_t *s)
 {
 	uint32_t val = 0;
@@ -445,6 +454,7 @@ static const command_t commands[] = {
 	{ .name = "VOLTAGE", .handler = cmd_voltage, .argc = 2, },
 	{ .name = "CURRENT", .handler = cmd_current, .argc = 2, },
 	{ .name = "AUTOCOMMIT", .handler = cmd_autocommit, .argc = 2, },
+	{ .name = "ONSTARTUP", .handler = cmd_onstartup, .argc = 2, },
 	{ .name = "CALVINADCA", .handler = cmd_cal_vin_adc_a, .argc = 2, },
 	{ .name = "CALVINADCB", .handler = cmd_cal_vin_adc_b, .argc = 2, },
 	{ .name = "CALVOUTADCA", .handler = cmd_cal_vout_adc_a, .argc = 2, },
