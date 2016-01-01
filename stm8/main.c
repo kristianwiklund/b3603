@@ -415,6 +415,7 @@ static const command_t commands[] = {
 	{ .name = "STUCK", .handler = cmd_stuck, .argc = 1, },
 #endif
 	{ .name = "SNAME", .handler = cmd_sname, .argc = 2, },
+	{ .name = "ECHO", .handler = cmd_set_bool, .argc = 2, .aux = &uart_echo, },
 	{ .name = "OUTPUT", .handler = cmd_set_bool, .argc = 2, .aux = &cfg_system.output, },
 	{ .name = "VOLTAGE", .handler = cmd_set_output_value, .argc = 2, .aux = &cmd_set_output_value_aux_voltage, },
 	{ .name = "CURRENT", .handler = cmd_set_output_value, .argc = 2, .aux = &cmd_set_output_value_aux_current, },

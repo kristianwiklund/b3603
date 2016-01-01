@@ -29,6 +29,7 @@ static uint8_t uart_write_len;
 uint8_t uart_read_buf[64];
 uint8_t uart_read_len;
 uint8_t read_newline;
+uint8_t uart_echo;
 
 void uart_init()
 {
@@ -175,6 +176,13 @@ inline void uart_read_to_buf(void)
 
 	if (ch == '\r' || ch == '\n')
 		read_newline = 1;
+
+	if (uart_echo) {
+		if (read_newline)
+			uart_write_str("\r\n");
+		else
+			uart_write_ch(ch);
+	}
 
 	// Empty the read buf if we are overfilling and there is no full command in there
 	if (uart_read_len == sizeof(uart_read_buf) && !read_newline) {

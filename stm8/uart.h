@@ -21,6 +21,7 @@
 extern uint8_t uart_read_buf[64];
 extern uint8_t uart_read_len;
 extern uint8_t read_newline;
+extern uint8_t uart_echo;
 
 void uart_init(void);
 void uart_write_ch(const char ch);
