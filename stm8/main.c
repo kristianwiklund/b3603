@@ -66,6 +66,7 @@ static void write_newline(void)
 static void write_str(const char *prefix, const char *val)
 {
 	uart_write_str(prefix);
+	uart_write_str(": ");
 	uart_write_str(val);
 	write_newline();
 }
@@ -78,6 +79,7 @@ static void write_onoff(const char *prefix, uint8_t on)
 static void write_millis(const char *prefix, uint16_t val)
 {
 	uart_write_str(prefix);
+	uart_write_str(": ");
 	uart_write_millis(val);
 	write_newline();
 }
@@ -85,6 +87,7 @@ static void write_millis(const char *prefix, uint16_t val)
 static void write_uint(const char *prefix, uint32_t val)
 {
 	uart_write_str(prefix);
+	uart_write_str(": ");
 	uart_write_uint(val);
 	write_newline();
 }
@@ -93,6 +96,7 @@ static void write_calibration_fixed_point(const char* prefix, calibrate_t *cal)
 {
 	uart_write_str("CALIBRATE ");
 	uart_write_str(prefix);
+	uart_write_str(": ");
 	uart_write_fixed_point(cal->a);
 	uart_write_ch('/');
 	uart_write_fixed_point(cal->b);
@@ -103,6 +107,7 @@ static void write_calibration_uint(const char* prefix, calibrate_t *cal)
 {
 	uart_write_str("CALIBRATE ");
 	uart_write_str(prefix);
+	uart_write_str(": ");
 	uart_write_uint(cal->a);
 	uart_write_ch('/');
 	uart_write_uint(cal->b);
@@ -141,7 +146,7 @@ static void cmd_sname(uint8_t *name)
 	memcpy(cfg_system.name, name, sizeof(cfg_system.name));
 	cfg_system.name[sizeof(cfg_system.name)-1] = 0;
 
-	write_str("SNAME: ", cfg_system.name);
+	write_str("SNAME", cfg_system.name);
 }
 
 static uint8_t parse_boolean(uint8_t *s, uint8_t *bool)
@@ -165,7 +170,7 @@ static void write_boolean_help(uint8_t *what, uint8_t *s)
 static void cmd_output(uint8_t *s)
 {
 	if (parse_boolean(s, &cfg_system.output)) {
-		write_onoff("OUTPUT: ", cfg_system.output);
+		write_onoff("OUTPUT", cfg_system.output);
 		autocommit();
 	} else {
 		write_boolean_help("OUTPUT", s);
@@ -216,7 +221,7 @@ static void cmd_current(uint8_t *s)
 		return;
 	}
 
-	write_millis("CURRENT: SET ", val);
+	write_millis("CURRENT", val);
 	cfg_output.cset = val;
 
 	autocommit();
@@ -225,7 +230,7 @@ static void cmd_current(uint8_t *s)
 static void cmd_autocommit(uint8_t *s)
 {
 	if (parse_boolean(s, &cfg_system.autocommit)) {
-		write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
+		write_onoff("AUTOCOMMIT", cfg_system.autocommit);
 	} else {
 		write_boolean_help("AUTOCOMMIT", s);
 	}
@@ -234,7 +239,7 @@ static void cmd_autocommit(uint8_t *s)
 static void cmd_onstartup(uint8_t *s)
 {
 	if (parse_boolean(s, &cfg_system.default_on)) {
-		write_onoff("ONSTARTUP: ", cfg_system.default_on);
+		write_onoff("ONSTARTUP", cfg_system.default_on);
 	} else {
 		write_boolean_help("ONSTARTUP", s);
 	}
@@ -292,31 +297,31 @@ static void cmd_system(uint8_t *data)
 	cmd_model(NULL);
 	cmd_version(NULL);
 
-	write_str("NAME: ", cfg_system.name);
-	write_onoff("ONSTARTUP: ", cfg_system.default_on);
-	write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
+	write_str("NAME", cfg_system.name);
+	write_onoff("ONSTARTUP", cfg_system.default_on);
+	write_onoff("AUTOCOMMIT", cfg_system.autocommit);
 }
 
 static void cmd_calibration(uint8_t *data)
 {
 	(void) data;
 
-	write_calibration_fixed_point("VIN ADC: ", &cfg_system.vin_adc);
-	write_calibration_fixed_point("VOUT ADC: ", &cfg_system.vout_adc);
-	write_calibration_fixed_point("COUT ADC: ", &cfg_system.cout_adc);
-	write_calibration_fixed_point("VOUT PWM: ", &cfg_system.vout_pwm);
-	write_calibration_fixed_point("COUT PWM: ", &cfg_system.cout_pwm);
+	write_calibration_fixed_point("VIN ADC", &cfg_system.vin_adc);
+	write_calibration_fixed_point("VOUT ADC", &cfg_system.vout_adc);
+	write_calibration_fixed_point("COUT ADC", &cfg_system.cout_adc);
+	write_calibration_fixed_point("VOUT PWM", &cfg_system.vout_pwm);
+	write_calibration_fixed_point("COUT PWM", &cfg_system.cout_pwm);
 }
 
 static void cmd_rcalibration(uint8_t *data)
 {
 	(void) data;
 
-	write_calibration_uint("VIN ADC: ", &cfg_system.vin_adc);
-	write_calibration_uint("VOUT ADC: ", &cfg_system.vout_adc);
-	write_calibration_uint("COUT ADC: ", &cfg_system.cout_adc);
-	write_calibration_uint("VOUT PWM: ", &cfg_system.vout_pwm);
-	write_calibration_uint("COUT PWM: ", &cfg_system.cout_pwm);
+	write_calibration_uint("VIN ADC", &cfg_system.vin_adc);
+	write_calibration_uint("VOUT ADC", &cfg_system.vout_adc);
+	write_calibration_uint("COUT ADC", &cfg_system.cout_adc);
+	write_calibration_uint("VOUT PWM", &cfg_system.vout_pwm);
+	write_calibration_uint("COUT PWM", &cfg_system.cout_pwm);
 }
 
 static void cmd_limits(uint8_t *data)
@@ -324,12 +329,12 @@ static void cmd_limits(uint8_t *data)
 	(void) data;
 
 	uart_write_str("LIMITS:\r\n");
-	write_millis("VMIN: ", CAP_VMIN);
-	write_millis("VMAX: ", CAP_VMAX);
-	write_millis("VSTEP: ", CAP_VSTEP);
-	write_millis("CMIN: ", CAP_CMIN);
-	write_millis("CMAX: ", CAP_CMAX);
-	write_millis("CSTEP: ", CAP_CSTEP);
+	write_millis("VMIN", CAP_VMIN);
+	write_millis("VMAX", CAP_VMAX);
+	write_millis("VSTEP", CAP_VSTEP);
+	write_millis("CMIN", CAP_CMIN);
+	write_millis("CMAX", CAP_CMAX);
+	write_millis("CSTEP", CAP_CSTEP);
 }
 
 static void cmd_config(uint8_t *data)
@@ -337,11 +342,11 @@ static void cmd_config(uint8_t *data)
 	(void) data;
 
 	uart_write_str("CONFIG:\r\n");
-	write_onoff("OUTPUT: ", cfg_system.output);
-	write_millis("VSET: ", cfg_output.vset);
-	write_millis("CSET: ", cfg_output.cset);
-	write_millis("VSHUTDOWN: ", cfg_output.vshutdown);
-	write_millis("CSHUTDOWN: ", cfg_output.cshutdown);
+	write_onoff("OUTPUT", cfg_system.output);
+	write_millis("VSET", cfg_output.vset);
+	write_millis("CSET", cfg_output.cset);
+	write_millis("VSHUTDOWN", cfg_output.vshutdown);
+	write_millis("CSHUTDOWN", cfg_output.cshutdown);
 }
 
 static void cmd_status(uint8_t *data)
@@ -349,11 +354,11 @@ static void cmd_status(uint8_t *data)
 	(void) data;
 
 	uart_write_str("STATUS:\r\n");
-	write_onoff("OUTPUT: ", cfg_system.output);
-	write_millis("VIN: ", state.vin);
-	write_millis("VOUT: ", state.vout);
-	write_millis("COUT: ", state.cout);
-	write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
+	write_onoff("OUTPUT", cfg_system.output);
+	write_millis("VIN", state.vin);
+	write_millis("VOUT", state.vout);
+	write_millis("COUT", state.cout);
+	write_str("CONSTANT", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
 static void cmd_rstatus(uint8_t *data)
@@ -361,14 +366,14 @@ static void cmd_rstatus(uint8_t *data)
 	(void) data;
 
 	uart_write_str("RSTATUS:\r\n");
-	write_onoff("OUTPUT: ", cfg_system.output);
-	write_uint("VIN ADC: ", state.vin_raw);
-	write_millis("VIN: ", state.vin);
-	write_uint("VOUT ADC: ", state.vout_raw);
-	write_millis("VOUT: ", state.vout);
-	write_uint("COUT ADC: ", state.cout_raw);
-	write_millis("COUT: ", state.cout);
-	write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
+	write_onoff("OUTPUT", cfg_system.output);
+	write_uint("VIN ADC", state.vin_raw);
+	write_millis("VIN", state.vin);
+	write_uint("VOUT ADC", state.vout_raw);
+	write_millis("VOUT", state.vout);
+	write_uint("COUT ADC", state.cout_raw);
+	write_millis("COUT", state.cout);
+	write_str("CONSTANT", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
 static void cmd_commit(uint8_t *data)
