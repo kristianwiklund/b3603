@@ -107,6 +107,15 @@ static void commit_output()
 	output_commit(&cfg_output, &cfg_system, state.constant_current);
 }
 
+static void autocommit(void)
+{
+	if (cfg_system.autocommit) {
+		commit_output();
+	} else {
+		uart_write_str("AUTOCOMMIT OFF: CHANGE PENDING ON COMMIT\r\n");
+	}
+}
+
 static void cmd_sname(uint8_t *name)
 {
 	uint8_t idx;
@@ -120,15 +129,6 @@ static void cmd_sname(uint8_t *name)
 	cfg_system.name[sizeof(cfg_system.name)-1] = 0;
 
 	write_str("SNAME: ", cfg_system.name);
-}
-
-static void autocommit(void)
-{
-	if (cfg_system.autocommit) {
-		commit_output();
-	} else {
-		uart_write_str("AUTOCOMMIT OFF: CHANGE PENDING ON COMMIT\r\n");
-	}
 }
 
 static void cmd_output(uint8_t *s)
