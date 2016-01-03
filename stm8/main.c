@@ -43,6 +43,11 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+typedef struct calibration_write {
+	const char *name;
+	calibrate_t *cal;
+} calibration_write_t;
+
 static cfg_system_t cfg_system;
 static cfg_output_t cfg_output;
 static state_t state;
@@ -92,25 +97,25 @@ static void write_uint(const char *prefix, uint32_t val)
 	write_newline();
 }
 
-static void write_calibration_fixed_point(const char* prefix, calibrate_t *cal)
+static void write_calibration_fixed_point(calibration_write_t *calwrite)
 {
 	uart_write_str("CALIBRATE ");
-	uart_write_str(prefix);
+	uart_write_str(calwrite->name);
 	uart_write_str(": ");
-	uart_write_fixed_point(cal->a);
+	uart_write_fixed_point(calwrite->cal->a);
 	uart_write_ch('/');
-	uart_write_fixed_point(cal->b);
+	uart_write_fixed_point(calwrite->cal->b);
 	write_newline();
 }
 
-static void write_calibration_uint(const char* prefix, calibrate_t *cal)
+static void write_calibration_uint(calibration_write_t *calwrite)
 {
 	uart_write_str("CALIBRATE ");
-	uart_write_str(prefix);
+	uart_write_str(calwrite->name);
 	uart_write_str(": ");
-	uart_write_uint(cal->a);
+	uart_write_uint(calwrite->cal->a);
 	uart_write_ch('/');
-	uart_write_uint(cal->b);
+	uart_write_uint(calwrite->cal->b);
 	write_newline();
 }
 
@@ -266,28 +271,36 @@ static void cmd_system(const command_t *cmd, uint8_t **argv)
 	write_onoff("AUTOCOMMIT", cfg_system.autocommit);
 }
 
+static const calibration_write_t calibration_write[] = {
+	{ .name = "VIN ADC", .cal = &cfg_system.vin_adc, },
+	{ .name = "VOUT ADC", .cal = &cfg_system.vout_adc, },
+	{ .name = "COUT ADC", .cal = &cfg_system.cout_adc, },
+	{ .name = "VOUT PWM", .cal = &cfg_system.vout_pwm, },
+	{ .name = "COUT PWM", .cal = &cfg_system.cout_pwm, },
+};
+
 static void cmd_calibration(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t idx;
+
 	(void) cmd;
 	(void) argv;
 
-	write_calibration_fixed_point("VIN ADC", &cfg_system.vin_adc);
-	write_calibration_fixed_point("VOUT ADC", &cfg_system.vout_adc);
-	write_calibration_fixed_point("COUT ADC", &cfg_system.cout_adc);
-	write_calibration_fixed_point("VOUT PWM", &cfg_system.vout_pwm);
-	write_calibration_fixed_point("COUT PWM", &cfg_system.cout_pwm);
+	for (idx = 0; idx < ARRAY_SIZE(calibration_write); idx++) {
+		write_calibration_fixed_point(&calibration_write[idx]);
+	}
 }
 
 static void cmd_rcalibration(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t idx;
+
 	(void) cmd;
 	(void) argv;
 
-	write_calibration_uint("VIN ADC", &cfg_system.vin_adc);
-	write_calibration_uint("VOUT ADC", &cfg_system.vout_adc);
-	write_calibration_uint("COUT ADC", &cfg_system.cout_adc);
-	write_calibration_uint("VOUT PWM", &cfg_system.vout_pwm);
-	write_calibration_uint("COUT PWM", &cfg_system.cout_pwm);
+	for (idx = 0; idx < ARRAY_SIZE(calibration_write); idx++) {
+		write_calibration_uint(&calibration_write[idx]);
+	}
 }
 
 static void cmd_limits(const command_t *cmd, uint8_t **argv)
