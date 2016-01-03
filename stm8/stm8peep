@@ -1,0 +1,90 @@
+replace restart {
+	ldw	x, (%1, sp)
+	ld	(x), a
+	ldw	x, (%1, sp)
+	ld	a, (x)
+} by {
+	ldw	x, (%1, sp)
+	ld	(x), a
+	; peephole: removed load from store-load combination
+}
+
+replace restart {
+	ldw	(%1, sp), x
+	ldw	x, (%1, sp)
+} by {
+	ldw	(%1, sp), x
+	; peephole: removed load from store-load combination
+}
+
+replace restart {
+	ldw	y, (%1, sp)
+	ld	(y), a
+	ldw	y, (%1, sp)
+	ld	a, (y)
+} by {
+	ldw	y, (%1, sp)
+	ld	(y), a
+	; peephole: removed load from store-load combination
+}
+
+replace restart {
+	ldw	(%1, sp), y
+	ldw	y, (%1, sp)
+} by {
+	ldw	(%1, sp), y
+	; peephole: removed load from store-load combination
+}
+
+replace restart {
+	ldw	x, #%1
+	ld	a, (x)
+} by {
+	ld	a, %1
+	; peephole: replaced indirect load from constant memory address
+} if notUsed('x')
+
+replace restart {
+	ldw	x, #%1
+	ld	(x), a
+} by {
+	ld	%1, a
+	; peephole: replaced indirect load to constant memory address
+} if notUsed('x')
+
+replace restart {
+	ldw	x, (%1, sp)
+	ld	a, (x)
+	tnz	a
+	jreq    %2
+	ldw	x, (%1, sp)
+} by {
+	ldw	x, (%1, sp)
+	ld	a, (x)
+	tnz	a
+	jreq    %2
+	; peephole: removed redundant load of (%1, sp) to x
+}
+
+replace restart {
+	jreq	%2
+	or	a, %4
+	ldw	x, %1
+	ld	(x), a
+	jra	%3
+%2:
+	and	a, %5
+	ldw	x, %1
+	ld	(x), a
+%3:
+} by {
+	jreq	%2
+	or	a, %4
+	jra	%3
+%2:
+	and	a, %5
+%3:
+	ldw	x, %1
+	ld	(x), a
+	; peephole: moved common store to tail
+} if labelRefCount(%2 1), labelRefCount(%3 1)
