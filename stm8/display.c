@@ -82,7 +82,7 @@ static uint8_t display_char(uint8_t ch, uint8_t dot)
 	if (dot)
 		dot = 1;
 	if (ch >= '0' && ch <= '9')
-		return display_number[ch-'0'] | dot;
+		return display_number[ch & 0x0F] | dot;
 	return dot;
 }
 

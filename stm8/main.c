@@ -158,8 +158,8 @@ static void cmd_set_bool(const command_t *cmd, uint8_t **argv)
 	uint8_t *val = cmd->aux;
 	uint8_t *s = argv[1];
 
-	if ((s[0] == '0' || s[0] == '1') && s[1] == 0) {
-		*val = s[0] - '0';
+	if (((s[0] & ~1) == '0') && s[1] == 0) {
+		*val = s[0] & 1;
 		write_onoff(cmd->name, *val);
 		autocommit();
 	} else {
