@@ -279,27 +279,17 @@ static const calibration_write_t calibration_write[] = {
 	{ .name = "COUT PWM", .cal = &cfg_system.cout_pwm, },
 };
 
+typedef void (*calibration_write_func_t)(calibration_write_t *cal);
+
 static void cmd_calibration(const command_t *cmd, uint8_t **argv)
 {
+	calibration_write_func_t handler = cmd->aux;
 	uint8_t idx;
 
-	(void) cmd;
 	(void) argv;
 
 	for (idx = 0; idx < ARRAY_SIZE(calibration_write); idx++) {
-		write_calibration_fixed_point(&calibration_write[idx]);
-	}
-}
-
-static void cmd_rcalibration(const command_t *cmd, uint8_t **argv)
-{
-	uint8_t idx;
-
-	(void) cmd;
-	(void) argv;
-
-	for (idx = 0; idx < ARRAY_SIZE(calibration_write); idx++) {
-		write_calibration_uint(&calibration_write[idx]);
+		handler(&calibration_write[idx]);
 	}
 }
 
@@ -416,8 +406,8 @@ static const command_t commands[] = {
 	{ .name = "MODEL", .handler = cmd_model, .argc = 1, },
 	{ .name = "VERSION", .handler = cmd_version, .argc = 1, },
 	{ .name = "SYSTEM", .handler = cmd_system, .argc = 1, },
-	{ .name = "CALIBRATION", .handler = cmd_calibration, .argc = 1, },
-	{ .name = "RCALIBRATION", .handler = cmd_rcalibration, .argc = 1, },
+	{ .name = "CALIBRATION", .handler = cmd_calibration, .argc = 1, .aux = write_calibration_fixed_point, },
+	{ .name = "RCALIBRATION", .handler = cmd_calibration, .argc = 1, .aux = write_calibration_uint, },
 	{ .name = "LIMITS", .handler = cmd_limits, .argc = 1, },
 	{ .name = "CONFIG", .handler = cmd_config, .argc = 1, },
 	{ .name = "STATUS", .handler = cmd_status, .argc = 1, },
