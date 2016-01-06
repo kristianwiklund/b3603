@@ -271,18 +271,24 @@ CMD_CAL_WRAPPER(cmd_cal_cout_pwm_b, "COUT PWM B", &cfg_system.cout_pwm.b)
 
 #undef CMD_CAL_WRAPPER
 
-static void cmd_model(void)
+static void cmd_model(uint8_t *data)
 {
+	(void) data;
+
 	uart_write_str("MODEL: " MODEL "\r\n");
 }
 
-static void cmd_version(void)
+static void cmd_version(uint8_t *data)
 {
+	(void) data;
+
 	uart_write_str("VERSION: " FW_VERSION "\r\n");
 }
 
-static void cmd_system(void)
+static void cmd_system(uint8_t *data)
 {
+	(void) data;
+
 	uart_write_str("MODEL: " MODEL "\r\n");
 	uart_write_str("VERSION: " FW_VERSION "\r\n");
 
@@ -291,8 +297,10 @@ static void cmd_system(void)
 	write_onoff("AUTOCOMMIT: ", cfg_system.autocommit);
 }
 
-static void cmd_calibration(void)
+static void cmd_calibration(uint8_t *data)
 {
+	(void) data;
+
 	write_calibration_fixed_point("VIN ADC: ", &cfg_system.vin_adc);
 	write_calibration_fixed_point("VOUT ADC: ", &cfg_system.vout_adc);
 	write_calibration_fixed_point("COUT ADC: ", &cfg_system.cout_adc);
@@ -300,8 +308,10 @@ static void cmd_calibration(void)
 	write_calibration_fixed_point("COUT PWM: ", &cfg_system.cout_pwm);
 }
 
-static void cmd_rcalibration(void)
+static void cmd_rcalibration(uint8_t *data)
 {
+	(void) data;
+
 	write_calibration_uint("VIN ADC: ", &cfg_system.vin_adc);
 	write_calibration_uint("VOUT ADC: ", &cfg_system.vout_adc);
 	write_calibration_uint("COUT ADC: ", &cfg_system.cout_adc);
@@ -309,8 +319,10 @@ static void cmd_rcalibration(void)
 	write_calibration_uint("COUT PWM: ", &cfg_system.cout_pwm);
 }
 
-static void cmd_limits(void)
+static void cmd_limits(uint8_t *data)
 {
+	(void) data;
+
 	uart_write_str("LIMITS:\r\n");
 	write_millis("VMIN: ", CAP_VMIN);
 	write_millis("VMAX: ", CAP_VMAX);
@@ -320,8 +332,10 @@ static void cmd_limits(void)
 	write_millis("CSTEP: ", CAP_CSTEP);
 }
 
-static void cmd_config(void)
+static void cmd_config(uint8_t *data)
 {
+	(void) data;
+
 	uart_write_str("CONFIG:\r\n");
 	write_onoff("OUTPUT: ", cfg_system.output);
 	write_millis("VSET: ", cfg_output.vset);
@@ -330,8 +344,10 @@ static void cmd_config(void)
 	write_millis("CSHUTDOWN: ", cfg_output.cshutdown);
 }
 
-static void cmd_status(void)
+static void cmd_status(uint8_t *data)
 {
+	(void) data;
+
 	uart_write_str("STATUS:\r\n");
 	write_onoff("OUTPUT: ", cfg_system.output);
 	write_millis("VIN: ", state.vin);
@@ -340,8 +356,10 @@ static void cmd_status(void)
 	write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
-static void cmd_rstatus(void)
+static void cmd_rstatus(uint8_t *data)
 {
+	(void) data;
+
 	uart_write_str("RSTATUS:\r\n");
 	write_onoff("OUTPUT: ", cfg_system.output);
 	write_uint("VIN ADC: ", state.vin_raw);
@@ -353,35 +371,45 @@ static void cmd_rstatus(void)
 	write_str("CONSTANT: ", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
-static void cmd_commit(void)
+static void cmd_commit(uint8_t *data)
 {
+	(void) data;
+
 	commit_output();
 }
 
-static void cmd_save(void)
+static void cmd_save(uint8_t *data)
 {
+	(void) data;
+
 	config_save_system(&cfg_system);
 	config_save_output(&cfg_output);
 	uart_write_str("SAVED\r\n");
 }
 
-static void cmd_load(void)
+static void cmd_load(uint8_t *data)
 {
+	(void) data;
+
 	config_load_system(&cfg_system);
 	config_load_output(&cfg_output);
 	autocommit();
 }
 
-static void cmd_restore(void)
+static void cmd_restore(uint8_t *data)
 {
+	(void) data;
+
 	config_default_system(&cfg_system);
 	config_default_output(&cfg_output);
 	autocommit();
 }
 
 #if DEBUG
-static void cmd_stuck(void)
+static void cmd_stuck(uint8_t *data)
 {
+	(void) data;
+
 	// Allows debugging of the IWDG feature
 	uart_write_str("STUCK\r\n");
 	uart_write_flush();
@@ -395,34 +423,34 @@ static void process_input()
 	uart_read_buf[uart_read_len-1] = 0;
 
 	if (strcmp(uart_read_buf, "MODEL") == 0) {
-		cmd_model();
+		cmd_model(NULL);
 	} else if (strcmp(uart_read_buf, "VERSION") == 0) {
-		cmd_version();
+		cmd_version(NULL);
 	} else if (strcmp(uart_read_buf, "SYSTEM") == 0) {
-		cmd_system();
+		cmd_system(NULL);
 	} else if (strcmp(uart_read_buf, "CALIBRATION") == 0) {
-		cmd_calibration();
+		cmd_calibration(NULL);
 	} else if (strcmp(uart_read_buf, "RCALIBRATION") == 0) {
-		cmd_rcalibration();
+		cmd_rcalibration(NULL);
 	} else if (strcmp(uart_read_buf, "LIMITS") == 0) {
-		cmd_limits();
+		cmd_limits(NULL);
 	} else if (strcmp(uart_read_buf, "CONFIG") == 0) {
-		cmd_config();
+		cmd_config(NULL);
 	} else if (strcmp(uart_read_buf, "STATUS") == 0) {
-		cmd_status();
+		cmd_status(NULL);
 	} else if (strcmp(uart_read_buf, "RSTATUS") == 0) {
-		cmd_rstatus();
+		cmd_rstatus(NULL);
 	} else if (strcmp(uart_read_buf, "COMMIT") == 0) {
-		cmd_commit();
+		cmd_commit(NULL);
 	} else if (strcmp(uart_read_buf, "SAVE") == 0) {
-		cmd_save();
+		cmd_save(NULL);
 	} else if (strcmp(uart_read_buf, "LOAD") == 0) {
-		cmd_load();
+		cmd_load(NULL);
 	} else if (strcmp(uart_read_buf, "RESTORE") == 0) {
-		cmd_restore();
+		cmd_restore(NULL);
 #if DEBUG
 	} else if (strcmp(uart_read_buf, "STUCK") == 0) {
-		cmd_stuck();
+		cmd_stuck(NULL);
 #endif
 	} else {
 		// Process commands with arguments
