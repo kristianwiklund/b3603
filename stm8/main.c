@@ -255,6 +255,7 @@ static const calibration_write_t calibration_write[] = {
 	{ .name = "COUT ADC", .cal = &cfg_system.cout_adc, },
 	{ .name = "VOUT PWM", .cal = &cfg_system.vout_pwm, },
 	{ .name = "COUT PWM", .cal = &cfg_system.cout_pwm, },
+	{ 0, },
 };
 
 typedef void (*calibration_write_func_t)(uint32_t);
@@ -262,13 +263,11 @@ typedef void (*calibration_write_func_t)(uint32_t);
 static void cmd_calibration(const command_t *cmd, uint8_t **argv)
 {
 	calibration_write_func_t handler = cmd->aux;
-	uint8_t idx;
+	const calibration_write_t *calwrite;
 
 	(void) argv;
 
-	for (idx = 0; idx < ARRAY_SIZE(calibration_write); idx++) {
-		const calibration_write_t *calwrite = &calibration_write[idx];
-
+	for (calwrite = calibration_write; calwrite->name; calwrite++) {
 		uart_write_str("CALIBRATE ");
 		uart_write_str(calwrite->name);
 		uart_write_str(": ");
@@ -423,21 +422,22 @@ static const command_t commands[] = {
 	{ .name = "CALCOUTADCB", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_cout_adc_b, },
 	{ .name = "CALCOUTPWMA", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_cout_pwm_a, },
 	{ .name = "CALCOUTPWMB", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_cout_pwm_b, },
+	{ 0, },
 };
 
 #define MAX_ARGC 2
 
 static void cmd_help(const command_t *cmd, uint8_t **argv)
 {
-	uint8_t idx;
+	const command_t *ocmd;
 
 	(void) cmd;
 	(void) argv;
 
 	uart_write_str("Available commands:\r\n");
-	for (idx = 0; idx < ARRAY_SIZE(commands); idx++) {
+	for (ocmd = commands; ocmd->name; ocmd++) {
 		uart_write_str("- ");
-		uart_write_str(commands[idx].name);
+		uart_write_str(ocmd->name);
 		write_newline();
 		uart_flush_writes();
 		iwatchdog_tick();
@@ -476,11 +476,11 @@ inline uint8_t split_args(uint8_t **argv, uint8_t size)
 
 inline const struct command *lookup_command(uint8_t *name)
 {
-	uint8_t idx;
+	const command_t *cmd;
 
-	for (idx = 0; idx < ARRAY_SIZE(commands); idx++) {
-		if (strcmp(name, commands[idx].name) == 0) {
-			return &commands[idx];
+	for (cmd = commands; cmd->name; cmd++) {
+		if (strcmp(name, cmd->name) == 0) {
+			return cmd;
 		}
 	}
 
