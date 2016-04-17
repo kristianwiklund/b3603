@@ -153,40 +153,33 @@ static void cmd_sname(const command_t *cmd, uint8_t **argv)
 	write_str("SNAME", cfg_system.name);
 }
 
-static uint8_t parse_boolean(uint8_t *s, uint8_t *bool)
+static void cmd_set_bool(const command_t *cmd, uint8_t **argv)
 {
-	if ((s[0] == '0' || s[0] == '1') && s[1] == 0) {
-		*bool = s[0] - '0';
-		return 1;
-	}
-
-	return 0;
-}
-
-static void write_boolean_help(uint8_t *what, uint8_t *s)
-{
-	uart_write_str(what);
-	uart_write_str(" takes either 0/NO/OFF for OFF or 1/YES/OF for ON, received: \"");
-	uart_write_str(s);
-	uart_write_str("\"\r\n");
-}
-
-static void cmd_output(const command_t *cmd, uint8_t **argv)
-{
+	uint8_t *val = cmd->aux;
 	uint8_t *s = argv[1];
 
-	(void) cmd;
-
-	if (parse_boolean(s, &cfg_system.output)) {
-		write_onoff("OUTPUT", cfg_system.output);
+	if ((s[0] == '0' || s[0] == '1') && s[1] == 0) {
+		*val = s[0] - '0';
+		write_onoff(cmd->name, *val);
 		autocommit();
 	} else {
-		write_boolean_help("OUTPUT", s);
+		uart_write_str(cmd->name);
+		uart_write_str(" takes either 0 for OFF or 1 for ON, received: \"");
+		uart_write_str(s);
+		uart_write_str("\"\r\n");
 	}
 }
 
-static void cmd_voltage(const command_t *cmd, uint8_t **argv)
+
+typedef struct cmd_set_output_value_aux {
+	uint16_t *val;
+	uint16_t min;
+	uint16_t max;
+} cmd_set_output_value_aux_t;
+
+static void cmd_set_output_value(const command_t *cmd, uint8_t **argv)
 {
+	cmd_set_output_value_aux_t *aux = cmd->aux;
 	uint8_t *s = argv[1];
 	fixed_t val;
 
@@ -196,109 +189,54 @@ static void cmd_voltage(const command_t *cmd, uint8_t **argv)
 	if (val == 0xFFFF)
 		return;
 
-	if (val > CAP_VMAX) {
-		uart_write_str("VOLTAGE");
+	if (val > aux->max) {
+		uart_write_str(cmd->name);
 		uart_write_str(" VALUE TOO HIGH\r\n");
 		return;
 	}
-	if (val < CAP_VMIN) {
-		uart_write_str("VOLTAGE");
+	if (val < aux->min) {
+		uart_write_str(cmd->name);
 		uart_write_str(" VALUE TOO LOW\r\n");
 		return;
 	}
 
-	write_millis("VOLTAGE: SET ", val);
-	cfg_output.vset = val;
+	write_millis(cmd->name, val);
+	*aux->val = val;
 
 	autocommit();
 }
 
-static void cmd_current(const command_t *cmd, uint8_t **argv)
+static const cmd_set_output_value_aux_t cmd_set_output_value_aux_voltage = { .val = &cfg_output.vset, .min = CAP_VMIN, .max = CAP_VMAX, };
+static const cmd_set_output_value_aux_t cmd_set_output_value_aux_current = { .val = &cfg_output.cset, .min = CAP_CMIN, .max = CAP_CMAX, };
+
+typedef struct cmd_cal_aux {
+	const char *name;
+	uint32_t *val;
+} cmd_cal_aux_t;
+
+static void cmd_cal(const command_t *cmd, uint8_t **argv)
 {
-	uint8_t *s = argv[1];
-	fixed_t val;
-
-	(void) cmd;
-
-	val = parse_millinum(s);
-	if (val == 0xFFFF)
-		return;
-
-	if (val > CAP_CMAX) {
-		uart_write_str("CURRENT");
-		uart_write_str(" VALUE TOO HIGH\r\n");
-		return;
-	}
-	if (val < CAP_CMIN) {
-		uart_write_str("CURRENT");
-		uart_write_str(" VALUE TOO LOW\r\n");
-		return;
-	}
-
-	write_millis("CURRENT", val);
-	cfg_output.cset = val;
-
-	autocommit();
-}
-
-static void cmd_autocommit(const command_t *cmd, uint8_t **argv)
-{
-	uint8_t *s = argv[1];
-
-	(void) cmd;
-
-	if (parse_boolean(s, &cfg_system.autocommit)) {
-		write_onoff("AUTOCOMMIT", cfg_system.autocommit);
-	} else {
-		write_boolean_help("AUTOCOMMIT", s);
-	}
-}
-
-static void cmd_onstartup(const command_t *cmd, uint8_t **argv)
-{
-	uint8_t *s = argv[1];
-
-	(void) cmd;
-
-	if (parse_boolean(s, &cfg_system.default_on)) {
-		write_onoff("ONSTARTUP", cfg_system.default_on);
-	} else {
-		write_boolean_help("ONSTARTUP", s);
-	}
-}
-
-
-static void cmd_cal(const char *name, uint32_t *pval, uint8_t **argv)
-{
+	cmd_cal_aux_t *aux = cmd->aux;
 	uint8_t *s = argv[1];
 	uint8_t *stop;
 	uint8_t digits;
 
-	*pval = parse_num(s, &stop, &digits);
+	*aux->val = parse_num(s, &stop, &digits);
 	uart_write_str("CALIBRATION SET ");
-	uart_write_str(name);
+	uart_write_str(aux->name);
 	write_newline();
 }
 
-#define CMD_CAL_WRAPPER(name, text, var) \
-	static void name(const command_t *cmd, uint8_t **argv) \
-	{ \
-		(void) cmd; \
-		cmd_cal(text, var, argv); \
-	}
-
-CMD_CAL_WRAPPER(cmd_cal_vin_adc_a, "VIN ADC A", &cfg_system.vin_adc.a)
-CMD_CAL_WRAPPER(cmd_cal_vin_adc_b, "VIN ADC B", &cfg_system.vin_adc.b)
-CMD_CAL_WRAPPER(cmd_cal_vout_adc_a, "VOUT ADC A", &cfg_system.vout_adc.a)
-CMD_CAL_WRAPPER(cmd_cal_vout_adc_b, "VOUT ADC B", &cfg_system.vout_adc.b)
-CMD_CAL_WRAPPER(cmd_cal_vout_pwm_a, "VOUT PWM A", &cfg_system.vout_pwm.a)
-CMD_CAL_WRAPPER(cmd_cal_vout_pwm_b, "VOUT PWM B", &cfg_system.vout_pwm.b)
-CMD_CAL_WRAPPER(cmd_cal_cout_adc_a, "COUT ADC A", &cfg_system.cout_adc.a)
-CMD_CAL_WRAPPER(cmd_cal_cout_adc_b, "COUT ADC B", &cfg_system.cout_adc.b)
-CMD_CAL_WRAPPER(cmd_cal_cout_pwm_a, "COUT PWM A", &cfg_system.cout_pwm.a)
-CMD_CAL_WRAPPER(cmd_cal_cout_pwm_b, "COUT PWM B", &cfg_system.cout_pwm.b)
-
-#undef CMD_CAL_WRAPPER
+static const cmd_cal_aux_t cmd_cal_aux_vin_adc_a = { .name = "VIN ADC A", .val = &cfg_system.vin_adc.a, };
+static const cmd_cal_aux_t cmd_cal_aux_vin_adc_b = { .name = "VIN ADC B", .val = &cfg_system.vin_adc.b, };
+static const cmd_cal_aux_t cmd_cal_aux_vout_adc_a = { .name = "VOUT ADC A", .val = &cfg_system.vout_adc.a, };
+static const cmd_cal_aux_t cmd_cal_aux_vout_adc_b = { .name = "VOUT ADC B", .val = &cfg_system.vout_adc.b, };
+static const cmd_cal_aux_t cmd_cal_aux_vout_pwm_a = { .name = "VOUT PWM A", .val = &cfg_system.vout_pwm.a, };
+static const cmd_cal_aux_t cmd_cal_aux_vout_pwm_b = { .name = "VOUT PWM B", .val = &cfg_system.vout_pwm.b, };
+static const cmd_cal_aux_t cmd_cal_aux_cout_adc_a = { .name = "COUT ADC A", .val = &cfg_system.cout_adc.a, };
+static const cmd_cal_aux_t cmd_cal_aux_cout_adc_b = { .name = "COUT ADC B", .val = &cfg_system.cout_adc.b, };
+static const cmd_cal_aux_t cmd_cal_aux_cout_pwm_a = { .name = "COUT PWM A", .val = &cfg_system.cout_pwm.a, };
+static const cmd_cal_aux_t cmd_cal_aux_cout_pwm_b = { .name = "COUT PWM B", .val = &cfg_system.cout_pwm.b, };
 
 static void cmd_model(const command_t *cmd, uint8_t **argv)
 {
@@ -323,7 +261,6 @@ static void cmd_system(const command_t *cmd, uint8_t **argv)
 
 	cmd_model(NULL, NULL);
 	cmd_version(NULL, NULL);
-
 	write_str("NAME", cfg_system.name);
 	write_onoff("ONSTARTUP", cfg_system.default_on);
 	write_onoff("AUTOCOMMIT", cfg_system.autocommit);
@@ -478,21 +415,21 @@ static const command_t commands[] = {
 	{ .name = "STUCK", .handler = cmd_stuck, .argc = 1, },
 #endif
 	{ .name = "SNAME", .handler = cmd_sname, .argc = 2, },
-	{ .name = "OUTPUT", .handler = cmd_output, .argc = 2, },
-	{ .name = "VOLTAGE", .handler = cmd_voltage, .argc = 2, },
-	{ .name = "CURRENT", .handler = cmd_current, .argc = 2, },
-	{ .name = "AUTOCOMMIT", .handler = cmd_autocommit, .argc = 2, },
-	{ .name = "ONSTARTUP", .handler = cmd_onstartup, .argc = 2, },
-	{ .name = "CALVINADCA", .handler = cmd_cal_vin_adc_a, .argc = 2, },
-	{ .name = "CALVINADCB", .handler = cmd_cal_vin_adc_b, .argc = 2, },
-	{ .name = "CALVOUTADCA", .handler = cmd_cal_vout_adc_a, .argc = 2, },
-	{ .name = "CALVOUTADCB", .handler = cmd_cal_vout_adc_b, .argc = 2, },
-	{ .name = "CALVOUTPWMA", .handler = cmd_cal_vout_pwm_a, .argc = 2, },
-	{ .name = "CALVOUTPWMB", .handler = cmd_cal_vout_pwm_b, .argc = 2, },
-	{ .name = "CALCOUTADCA", .handler = cmd_cal_cout_adc_a, .argc = 2, },
-	{ .name = "CALCOUTADCB", .handler = cmd_cal_cout_adc_b, .argc = 2, },
-	{ .name = "CALCOUTPWMA", .handler = cmd_cal_cout_pwm_a, .argc = 2, },
-	{ .name = "CALCOUTPWMB", .handler = cmd_cal_cout_pwm_b, .argc = 2, },
+	{ .name = "OUTPUT", .handler = cmd_set_bool, .argc = 2, .aux = &cfg_system.output, },
+	{ .name = "VOLTAGE", .handler = cmd_set_output_value, .argc = 2, .aux = &cmd_set_output_value_aux_voltage, },
+	{ .name = "CURRENT", .handler = cmd_set_output_value, .argc = 2, .aux = &cmd_set_output_value_aux_current, },
+	{ .name = "AUTOCOMMIT", .handler = cmd_set_bool, .argc = 2, .aux = &cfg_system.autocommit, },
+	{ .name = "ONSTARTUP", .handler = cmd_set_bool, .argc = 2, .aux = &cfg_system.default_on, },
+	{ .name = "CALVINADCA", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_vin_adc_a, },
+	{ .name = "CALVINADCB", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_vin_adc_b, },
+	{ .name = "CALVOUTADCA", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_vout_adc_a, },
+	{ .name = "CALVOUTADCB", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_vout_adc_b, },
+	{ .name = "CALVOUTPWMA", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_vout_pwm_a, },
+	{ .name = "CALVOUTPWMB", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_vout_pwm_b, },
+	{ .name = "CALCOUTADCA", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_cout_adc_a, },
+	{ .name = "CALCOUTADCB", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_cout_adc_b, },
+	{ .name = "CALCOUTPWMA", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_cout_pwm_a, },
+	{ .name = "CALCOUTPWMB", .handler = cmd_cal, .argc = 2, .aux = &cmd_cal_aux_cout_pwm_b, },
 };
 
 #define MAX_ARGC 2
