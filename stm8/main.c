@@ -130,13 +130,14 @@ static void autocommit(void)
 
 typedef struct command {
 	const char *name;
-	void (*handler)(const struct command *cmd, uint8_t *data);
+	void (*handler)(const struct command *cmd, uint8_t **argv);
 	uint8_t argc;
 	void *aux;
 } command_t;
 
-static void cmd_sname(const command_t *cmd, uint8_t *name)
+static void cmd_sname(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t *name = argv[1];
 	uint8_t idx;
 
 	(void) cmd;
@@ -170,8 +171,10 @@ static void write_boolean_help(uint8_t *what, uint8_t *s)
 	uart_write_str("\"\r\n");
 }
 
-static void cmd_output(const command_t *cmd, uint8_t *s)
+static void cmd_output(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t *s = argv[1];
+
 	(void) cmd;
 
 	if (parse_boolean(s, &cfg_system.output)) {
@@ -182,8 +185,9 @@ static void cmd_output(const command_t *cmd, uint8_t *s)
 	}
 }
 
-static void cmd_voltage(const command_t *cmd, uint8_t *s)
+static void cmd_voltage(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t *s = argv[1];
 	fixed_t val;
 
 	(void) cmd;
@@ -209,8 +213,9 @@ static void cmd_voltage(const command_t *cmd, uint8_t *s)
 	autocommit();
 }
 
-static void cmd_current(const command_t *cmd, uint8_t *s)
+static void cmd_current(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t *s = argv[1];
 	fixed_t val;
 
 	(void) cmd;
@@ -236,8 +241,10 @@ static void cmd_current(const command_t *cmd, uint8_t *s)
 	autocommit();
 }
 
-static void cmd_autocommit(const command_t *cmd, uint8_t *s)
+static void cmd_autocommit(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t *s = argv[1];
+
 	(void) cmd;
 
 	if (parse_boolean(s, &cfg_system.autocommit)) {
@@ -247,8 +254,10 @@ static void cmd_autocommit(const command_t *cmd, uint8_t *s)
 	}
 }
 
-static void cmd_onstartup(const command_t *cmd, uint8_t *s)
+static void cmd_onstartup(const command_t *cmd, uint8_t **argv)
 {
+	uint8_t *s = argv[1];
+
 	(void) cmd;
 
 	if (parse_boolean(s, &cfg_system.default_on)) {
@@ -259,8 +268,9 @@ static void cmd_onstartup(const command_t *cmd, uint8_t *s)
 }
 
 
-static void cmd_cal(const char *name, uint32_t *pval, uint8_t *s)
+static void cmd_cal(const char *name, uint32_t *pval, uint8_t **argv)
 {
+	uint8_t *s = argv[1];
 	uint8_t *stop;
 	uint8_t digits;
 
@@ -271,10 +281,10 @@ static void cmd_cal(const char *name, uint32_t *pval, uint8_t *s)
 }
 
 #define CMD_CAL_WRAPPER(name, text, var) \
-	static void name(const command_t *cmd, uint8_t *data) \
+	static void name(const command_t *cmd, uint8_t **argv) \
 	{ \
 		(void) cmd; \
-		cmd_cal(text, var, data); \
+		cmd_cal(text, var, argv); \
 	}
 
 CMD_CAL_WRAPPER(cmd_cal_vin_adc_a, "VIN ADC A", &cfg_system.vin_adc.a)
@@ -290,26 +300,26 @@ CMD_CAL_WRAPPER(cmd_cal_cout_pwm_b, "COUT PWM B", &cfg_system.cout_pwm.b)
 
 #undef CMD_CAL_WRAPPER
 
-static void cmd_model(const command_t *cmd, uint8_t *data)
+static void cmd_model(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	write_str("MODEL", MODEL);
 }
 
-static void cmd_version(const command_t *cmd, uint8_t *data)
+static void cmd_version(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	write_str("VERSION", FW_VERSION);
 }
 
-static void cmd_system(const command_t *cmd, uint8_t *data)
+static void cmd_system(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	cmd_model(NULL, NULL);
 	cmd_version(NULL, NULL);
@@ -319,10 +329,10 @@ static void cmd_system(const command_t *cmd, uint8_t *data)
 	write_onoff("AUTOCOMMIT", cfg_system.autocommit);
 }
 
-static void cmd_calibration(const command_t *cmd, uint8_t *data)
+static void cmd_calibration(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	write_calibration_fixed_point("VIN ADC", &cfg_system.vin_adc);
 	write_calibration_fixed_point("VOUT ADC", &cfg_system.vout_adc);
@@ -331,10 +341,10 @@ static void cmd_calibration(const command_t *cmd, uint8_t *data)
 	write_calibration_fixed_point("COUT PWM", &cfg_system.cout_pwm);
 }
 
-static void cmd_rcalibration(const command_t *cmd, uint8_t *data)
+static void cmd_rcalibration(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	write_calibration_uint("VIN ADC", &cfg_system.vin_adc);
 	write_calibration_uint("VOUT ADC", &cfg_system.vout_adc);
@@ -343,10 +353,10 @@ static void cmd_rcalibration(const command_t *cmd, uint8_t *data)
 	write_calibration_uint("COUT PWM", &cfg_system.cout_pwm);
 }
 
-static void cmd_limits(const command_t *cmd, uint8_t *data)
+static void cmd_limits(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	uart_write_str("LIMITS:\r\n");
 	write_millis("VMIN", CAP_VMIN);
@@ -357,10 +367,10 @@ static void cmd_limits(const command_t *cmd, uint8_t *data)
 	write_millis("CSTEP", CAP_CSTEP);
 }
 
-static void cmd_config(const command_t *cmd, uint8_t *data)
+static void cmd_config(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	uart_write_str("CONFIG:\r\n");
 	write_onoff("OUTPUT", cfg_system.output);
@@ -370,10 +380,10 @@ static void cmd_config(const command_t *cmd, uint8_t *data)
 	write_millis("CSHUTDOWN", cfg_output.cshutdown);
 }
 
-static void cmd_status(const command_t *cmd, uint8_t *data)
+static void cmd_status(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	uart_write_str("STATUS:\r\n");
 	write_onoff("OUTPUT", cfg_system.output);
@@ -383,10 +393,10 @@ static void cmd_status(const command_t *cmd, uint8_t *data)
 	write_str("CONSTANT", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
-static void cmd_rstatus(const command_t *cmd, uint8_t *data)
+static void cmd_rstatus(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	uart_write_str("RSTATUS:\r\n");
 	write_onoff("OUTPUT", cfg_system.output);
@@ -399,38 +409,38 @@ static void cmd_rstatus(const command_t *cmd, uint8_t *data)
 	write_str("CONSTANT", state.constant_current ? "CURRENT" : "VOLTAGE");
 }
 
-static void cmd_commit(const command_t *cmd, uint8_t *data)
+static void cmd_commit(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	commit_output();
 }
 
-static void cmd_save(const command_t *cmd, uint8_t *data)
+static void cmd_save(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	config_save_system(&cfg_system);
 	config_save_output(&cfg_output);
 	uart_write_str("SAVED\r\n");
 }
 
-static void cmd_load(const command_t *cmd, uint8_t *data)
+static void cmd_load(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	config_load_system(&cfg_system);
 	config_load_output(&cfg_output);
 	autocommit();
 }
 
-static void cmd_restore(const command_t *cmd, uint8_t *data)
+static void cmd_restore(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	config_default_system(&cfg_system);
 	config_default_output(&cfg_output);
@@ -438,10 +448,10 @@ static void cmd_restore(const command_t *cmd, uint8_t *data)
 }
 
 #if DEBUG
-static void cmd_stuck(const command_t *cmd, uint8_t *data)
+static void cmd_stuck(const command_t *cmd, uint8_t **argv)
 {
 	(void) cmd;
-	(void) data;
+	(void) argv;
 
 	// Allows debugging of the IWDG feature
 	uart_write_str("STUCK\r\n");
@@ -545,7 +555,7 @@ inline void process_input()
 	} else if (argc != cmd->argc) {
 		uart_write_str("ARGUMENT ERROR\r\n");
 	} else {
-		cmd->handler(cmd, argv[1]);
+		cmd->handler(cmd, argv);
 	}
 
 	uart_write_str("DONE\r\n");
