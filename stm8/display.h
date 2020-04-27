@@ -20,3 +20,5 @@
 
 void display_refresh(void);
 void display_show(uint8_t ch1, uint8_t dot1, uint8_t ch2, uint8_t dot2, uint8_t ch3, uint8_t dot3, uint8_t ch4, uint8_t dot4);
+void display_show_uint16(uint16_t value);
+void display_show_raw_digits(uint8_t ch1, uint8_t ch2, uint8_t ch3, uint8_t ch4 );
