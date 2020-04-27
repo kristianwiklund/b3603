@@ -16,9 +16,9 @@
  *  along with B3603 alternative firmware.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define FW_VERSION "1.0.1"
 #define MODEL "B3603"
 
+#include "version.h"
 #include "stm8s.h"
 #include <string.h>
 #include <stdint.h>
