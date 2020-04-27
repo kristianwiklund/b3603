@@ -1,5 +1,11 @@
 # B3603
 
+Differences to the original project:
+* Forked from swegener
+* Display code reused from https://github.com/iafilius/b3603 to get it working, the code in the original repo didn't display any numbers on my display. No idea why. $reasons, probably.
+* Moved (or at least started to move) the serial command interpreter to a different file for readability and to make further changes easier.
+
+# Original Description Below 
 This project is about reverse engineering the B3603 control board and figuring
 out how it works, then it should be possible to create an alternative firmware.
 Either by driving it with another board on the same control points or by
