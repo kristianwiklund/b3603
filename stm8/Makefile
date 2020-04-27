@@ -31,6 +31,10 @@ check_size: b3603.ihx
 deploy: b3603.ihx
 	stm8flash -c stlinkv2 -p stm8s003f3 -w $<
 
+unprotect:	
+	stm8flash -c stlinkv2 -p stm8s103f3 -s opt -w ROP_CLEAR.bin
+	stm8flash -c stlinkv2 -p stm8s103f3 -s opt -w factory_defaults.bin
+
 b3603.ihx: $(OBJ)
 	$(LINK) --out-fmt-ihx --code-size 8192 -o $@ $^
 
