@@ -3,7 +3,7 @@
 Differences to the original project:
 * Forked from swegener
 * Display code reused from https://github.com/iafilius/b3603 to get it working, the code in the original repo didn't display any numbers on my display. No idea why. $reasons, probably.
-* Moved (or at least started to move) the serial command interpreter to a different file for readability and to make further changes easier.
+* Replacing the original serial interface with a Korad-compatible interface. I originally intended to write sigrok support for the device, but this was easier. It presents as a Velleman device at the moment. To make this work, you need "ragel" for parser generation when building.
 
 # Original Description Below 
 This project is about reverse engineering the B3603 control board and figuring
