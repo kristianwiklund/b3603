@@ -14,11 +14,13 @@ extern state_t state;
 machine korad;
 
 action print_idn {uws(MODEL);}
-action print_status {uws(MODEL);}
+action print_status {uart_write_ch(0);} 
 action print_vset1 {uart_write_millivolt(cfg_output.vset);}
 action print_vout1 {uart_write_millivolt(state.vout);}
 action print_iset1 {uart_write_millivolt(cfg_output.cset);}
 action print_iout1 {uart_write_millivolt(state.cout);}
+action outon {cfg_system.output = 1;		commit_output();}
+action outoff {cfg_system.output = 0;		commit_output();}
 
 idnq = '*IDN?' @ print_idn;
 statusq = 'STATUS?' @ print_status;
@@ -26,8 +28,8 @@ vsetq = 'VSET1?' @ print_vset1;
 voutq = 'VOUT1?' @ print_vout1;
 isetq = 'ISET1?' @ print_iset1;
 ioutq = 'IOUT1?'@ print_iout1;
-outon = 'OUT1';
-outoff = 'OUT0';
+outon = 'OUT1' @ outon;
+outoff = 'OUT0' @ outoff;
 ovpon = 'OVP1';
 ovpoff = 'OVP0';
 ocpon = 'OCP1';
