@@ -19,8 +19,9 @@ action print_vset1 {uart_write_millivolt(cfg_output.vset);}
 action print_vout1 {uart_write_millivolt(state.vout);}
 action print_iset1 {uart_write_millivolt(cfg_output.cset);}
 action print_iout1 {uart_write_millivolt(state.cout);}
-action outon {cfg_system.output = 1;		commit_output();}
-action outoff {cfg_system.output = 0;		commit_output();}
+
+action outon {cfg_system.output = 1;commit_output();}
+action outoff {cfg_system.output = 0;commit_output();}
 
 idnq = '*IDN?' @ print_idn;
 statusq = 'STATUS?' @ print_status;
@@ -38,7 +39,7 @@ track = 'TRACK0';
 rcl = 'RCL1';
 sav = 'SAV1';
 chomp = alnum;
-main := (idnq|statusq|vsetq|voutq|isetq|ioutq|outon|outoff|ovpon|ocpon|ocpoff|track|rcl|sav|chomp)*;
+main := (idnq|statusq|vsetq|voutq|isetq|ioutq|outon|outoff|ovpon|ocpon|ocpoff|track|rcl|sav)**;
 
 }%%
 
