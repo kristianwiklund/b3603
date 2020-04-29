@@ -153,7 +153,7 @@ void read_state(void)
 				state.vout = adc_to_volt(val, &cfg_system.vout_adc);
 				ch = 4;
 				  
-				display_show_uint16(state.vout);
+				display_show_uint16(0x3E<<1, state.vout);
 				
 				break;
 			case 4:

@@ -95,10 +95,13 @@ void display_refresh(void)
 
 uint8_t display_char(uint8_t ch, uint8_t dot)
 {
+  
 	if (dot)
 		dot = 1;
 	if (ch >= '0' && ch <= '9')
 		return display_number[ch-'0'] | dot;
+	else
+	  return ch;
 	return dot;
 }
 
@@ -131,7 +134,7 @@ uint8_t uint16_to_digit(uint16_t value, uint16_t devider)
 
 
 // Displays the cfg_output_t uint16_t values
-void display_show_uint16(uint16_t value)
+void display_show_uint16(uint8_t what, uint16_t value)
 {
   uint8_t ch1;
   uint8_t ch2;
@@ -144,11 +147,12 @@ void display_show_uint16(uint16_t value)
     ch3 = uint16_to_digit(value, D2);
     ch4 = uint16_to_digit(value, D1);
   */
-  
-  ch1 = 0x0; // blank
-  ch2 = uint16_to_digit(value, D4);; // blank 
+
+  ch2 = uint16_to_digit(value, D4);
+  if (ch2=='0')
+    ch2=0x0;
   ch3 = uint16_to_digit(value, D3);
   ch4 = uint16_to_digit(value, D2);
-  
-  display_show(ch1, 0, ch2, 0, ch3, 1, ch4, 0);
+
+  display_show(what, 0, ch2, 0, ch3, 1, ch4, 0);
 }
