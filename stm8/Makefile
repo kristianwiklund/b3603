@@ -1,4 +1,4 @@
-SRC=main.c display.c uart.c eeprom.c outputs.c config.c fixedpoint.c parse.c adc.c serialio.c
+SRC=main.c display.c uart.c eeprom.c outputs.c config.c fixedpoint.c parse.c adc.c serialio.c korad.c
 CFLAGS= -lstm8 -mstm8 --opt-code-size --std-c99 --fverbose-asm 
 OBJ=$(SRC:.c=.rel)
 DEP=$(SRC:%.c=.%.c.d)
@@ -16,7 +16,12 @@ LINK = $(LINK_$(V))
 
 TESTUTILS=test_pwm_accuracy test_adc_accuracy test_parse
 
+
 all: b3603.ihx check_size
+
+korad.c: korad.rl
+	ragel korad.rl
+
 
 test: $(TESTUTILS)
 

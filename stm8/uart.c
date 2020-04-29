@@ -28,6 +28,8 @@ uint8_t uart_read_buf[64];
 uint8_t uart_read_len;
 uint8_t read_newline;
 
+void parseinput(uint8_t c);
+
 void uart_init()
 {
 	USART1_CR1 = 0; // 8 bits, no parity
@@ -213,7 +215,11 @@ void uart_read_to_buf(void)
 	if (ch >= 'a' && ch <= 'z')
 		ch = ch - 'a' + 'A'; // Convert letters to uppercase
 
-	uart_read_buf[uart_read_len] = ch;
+	// invoke the protocol parser state machine - do not store the text
+	parseinput(ch);
+	return;
+	
+       	uart_read_buf[uart_read_len] = ch;
 	uart_read_len++;
 
 	if (ch == '\r' || ch == '\n')

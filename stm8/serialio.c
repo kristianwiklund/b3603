@@ -220,7 +220,16 @@ void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 
 #define uws(x) uart_write_str(x"\r")
 #define command(c,w) if(!strcmp(c,urb)) {w;  uart_read_len = 0;return;}
-		
+
+
+void protoparser(uint8_t c) {
+
+  
+  
+}
+
+
+/* minor snag: the korad protocol does not use newline... 
 void process_input()
 {
   char *urb;
@@ -243,3 +252,4 @@ void process_input()
 
   //read_newline = 0;
 }
+*/

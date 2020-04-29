@@ -198,7 +198,8 @@ int main()
 	adc_init();
 
 	config_load();
-
+	initmachine();
+	
 	uart_write_str("\r\n" MODEL " starting: Version " FW_VERSION "\r\n");
 
 	ensure_afr0_set();
@@ -213,7 +214,7 @@ int main()
 		display_refresh();
 		uart_drive();
 		//if (read_newline) {
-		process_input();
+		//process_input();
 			//}
 	} while(1);
 }
