@@ -218,27 +218,28 @@ void parse_uint(const char *name, uint32_t *pval, uint8_t *s)
 	uart_write_str("\r\n");
 }
 
-#define uws(x) uart_write_str(x)
-#define command(c,w) if(!strcmp(c,urb)) {w;}
+#define uws(x) uart_write_str(x"\r")
+#define command(c,w) if(!strcmp(c,urb)) {w;  uart_read_len = 0;return;}
 		
 void process_input()
 {
   char *urb;
   // Eliminate the CR/LF character
-  uart_read_buf[uart_read_len-1] = 0;
+  //uart_read_buf[uart_read_len-1] = 0;
   urb = uart_read_buf;
   
   // uart_read_buf contains the entire string.
   // we want to implement primarily this: https://sigrok.org/wiki/Korad_KAxxxxP_series#Protocol
 
-  command("*IDX?", uws(MODEL));
+  command("*IDN?", uws(MODEL));
   command("VSET1?", uart_write_millivolt(cfg_output.vset));
   command("VOUT1?", uart_write_millivolt(state.vout));
   command("IOUT1?", uart_write_milliamp(state.cout));
   command("ISET1?", uart_write_milliamp(cfg_output.cset));
   command("OUT1", set_output("1"));
   command("OUT0", set_output("0"));
-  
-  uart_read_len = 0;
-  read_newline = 0;
+
+  // if we get here, we haven't had any match.
+
+  //read_newline = 0;
 }

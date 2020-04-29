@@ -1,4 +1,5 @@
-#define MODEL "B3603"
+//#define MODEL "B3603"
+#define MODEL "VELLEMANPS3005DV2.0" // test with sigrok
 
 #define CAP_VMIN 10 // 10mV
 #define CAP_VMAX 35000 // 35 V
