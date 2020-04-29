@@ -2,20 +2,30 @@
 #include "stm8s.h"
 #include "capabilities.h"
 #include "uart.h"
-#define uws(x) uart_write_str(x"\r")
+#include "config.h"
+#include "outputs.h"
+extern cfg_system_t cfg_system;
+extern cfg_output_t cfg_output;
+extern state_t state;
+
+#define uws(x) uart_write_str(x)
 
 %%{
 machine korad;
 
 action print_idn {uws(MODEL);}
 action print_status {uws(MODEL);}
+action print_vset1 {uart_write_millivolt(cfg_output.vset);}
+action print_vout1 {uart_write_millivolt(state.vout);}
+action print_iset1 {uart_write_millivolt(cfg_output.cset);}
+action print_iout1 {uart_write_millivolt(state.cout);}
 
 idnq = '*IDN?' @ print_idn;
 statusq = 'STATUS?' @ print_status;
-vsetq = 'VSET1?';
-voutq = 'VOUT1?';
-isetq = 'ISET1?';
-ioutq = 'IOUT1?';
+vsetq = 'VSET1?' @ print_vset1;
+voutq = 'VOUT1?' @ print_vout1;
+isetq = 'ISET1?' @ print_iset1;
+ioutq = 'IOUT1?'@ print_iout1;
 outon = 'OUT1';
 outoff = 'OUT0';
 ovpon = 'OVP1';

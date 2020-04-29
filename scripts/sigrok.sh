@@ -1,3 +1,4 @@
 #!/bin/sh
 
-sigrok-cli -d korad-kaxxxxp:conn=/dev/ttyUSB0:serialcomm=38400/8n1 --show -l 5
+sigrok-cli -d korad-kaxxxxp:conn=/dev/ttyUSB0:serialcomm=38400/8n1 --show -l 5 2>&1 | tee /tmp/sigrtext
+egrep "Sending|Received" /tmp/sigrtext
