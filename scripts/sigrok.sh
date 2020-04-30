@@ -13,3 +13,5 @@ sigrok-cli -d korad-kaxxxxp:conn=/dev/ttyUSB0:serialcomm=38400/8n1 --config "ena
 sigrok-cli -d korad-kaxxxxp:conn=/dev/ttyUSB0:serialcomm=38400/8n1 --samples 5| tail -1
 #sigrok-cli -d korad-kaxxxxp:conn=/dev/ttyUSB0:serialcomm=38400/8n1 --show -l 5 2>&1 | tee /tmp/sigrtext
 #egrep "Send|Receiv|value" /tmp/sigrtext
+echo "Turning off output"
+sigrok-cli -d korad-kaxxxxp:conn=/dev/ttyUSB0:serialcomm=38400/8n1 --config "enabled=off" --set 
