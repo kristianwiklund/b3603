@@ -14,10 +14,7 @@ See https://sigrok.org/wiki/Korad_KAxxxxP_series for protocol details
 * IOUT1?
 * OUT1
 * OUT0
-
-## Partial implementation
-
-* STATUS? - returns a constant binary 0 at the moment, otherwise sigrok breaks
+* STATUS? - applicable parts implemented
 
 ## Not implemented
 

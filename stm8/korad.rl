@@ -15,7 +15,14 @@ extern state_t state;
 machine korad;
 
 action print_idn {uws(MODEL);}
-action print_status {uart_write_ch(0);} 
+
+action print_status {
+       uint8_t xyzzy=0;
+       xyzzy |= state.constant_current?0:1;
+       xyzzy |= cfg_system.output?64:0;
+       uart_write_ch(xyzzy);
+       }
+
 action print_vset1 {uart_write_millivolt(cfg_output.vset);}
 action print_vout1 {uart_write_millivolt(state.vout);}
 action print_iset1 {uart_write_millivolt(cfg_output.cset);}
