@@ -25,10 +25,11 @@ action outon {cfg_system.output = 1;commit_output();}
 action outoff {cfg_system.output = 0;commit_output();}
 
 action vset {cfg_output.vset = val;commit_output();}
+action iset {cfg_output.cset = val;commit_output();}
 
-action voltage {val = parse_millinum(inbuf); inbufp=0;}
-
+action millinum {val = parse_millinum(inbuf); inbufp=0;}
 action digcoll {inbuf[inbufp++]=fc;inbuf[inbufp]=0;}
+
 
 idnq = '*IDN?' @ print_idn;
 statusq = 'STATUS?' @ print_status;
@@ -50,9 +51,11 @@ chomp = alnum;
 
 dig = digit @ digcoll;
 
-voltage =  dig+ ('.'@digcoll dig dig)? @ voltage;
+voltage =  dig+ ('.'@digcoll dig dig)? @ millinum;
+current =  dig+ ('.'@digcoll dig dig dig)? @ millinum;
 
 vset = ('VSET1:' voltage) @ vset;
+cset = ('ISET1:' voltage) @ iset;
 
 main := (idnq|statusq|vsetq|voutq|isetq|ioutq|outon|outoff|ovpon|ocpon|ocpoff|track|rcl|sav|vset)**;
 

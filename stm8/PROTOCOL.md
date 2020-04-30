@@ -1,4 +1,35 @@
-# Serial Protocol
+
+# Korad Protocol adherence
+
+See https://sigrok.org/wiki/Korad_KAxxxxP_series for protocol details
+
+## Implemented
+
+* *IDN?
+* VSET1
+* VSET1:<voltage> - voltage MUST have two decimals for parsing reasons, this seems to be the sigrok behavior
+* VOUT1?
+* ISET1?
+* ISET1:<current> - current MUST have three decimals for parsing reasons
+* IOUT1?
+* OUT1
+* OUT0
+
+## Partial implementation
+
+* STATUS? - returns a constant binary 0 at the moment, otherwise sigrok breaks
+
+## Not implemented
+
+* OVP1
+* OVP0
+* OCP1
+* OCP0
+* TRACK0
+* RCL1
+* SAV1
+
+# Old Serial Protocol
 
 This is a description of the serial protocol for this alternative firmware.
 
