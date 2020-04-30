@@ -213,8 +213,6 @@ int main()
 		read_state();
 		display_refresh();
 		uart_drive();
-		//if (read_newline) {
-		//process_input();
-			//}
+
 	} while(1);
 }
